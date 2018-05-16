@@ -12,3 +12,5 @@ construct_motion: This function takes as inputs the specified node positions and
 sim_motion: This function takes as inputs all node positions in 2D, and the connectivity between them, as well as the total arclength of motion to simulate along the full non-linear trajectory of the available network zero-energy modes. This function also takes as input some initial motion vector. This function simulates the full motion of the network along the non-linear distance constraints using a 4th order Runge-Kutta method by paramterizing network motion as a time variable. This function outputs a plot, as well as the positions of the nodes along this trajectory, and a cost function "fC" evalulated at every point along this trajectory to measure how well the motion satisfies distance constraints. The user should ensure the value of "fC" is sufficiently small to guarantee that the motions do not violate distance constraints.
 
 sim_motion3D: This function is the same as sim_motion, but in 3D
+
+test: This script contains all of the demonstration code to replicate the key results in the paper. This script is segmented by figure and subfigure headings.
