@@ -11,6 +11,18 @@ function [] = visualize_conic(Xs, Us, R, nC, nP, vS, vU)
 % vS: Scalar: scales the specified arrows by this amount
 % vU: Scalar: scales the unspecified arrows by this amount
 
+% Visualization Parameters
+LW_SA = 5;                      % Line Width of Specified Arrow
+LW_UA = 1;                      % Line Width of Unspecified Arrows
+LW_SS = 2;                      % Line Width of Solution Space
+MS_SN = 8;                     % Marker Size of Specified Node
+MS_UN = 3;                      % Marker Size of Unspecified Node
+C_SN = [255 100 100]/255;       % Color of Specified Node
+C_SA = [76 187 23;...           % Color of Specified Arrow
+        50 255 50]/255;         
+C_SS = [100 100 255;...         % Color of Solution Space
+        100 200 255]/255;       
+
 z = size(Us,3);         % Total number of motions
 for j = 1:z
     [Q, W, v0, err] = construct_conic(Xs, Us(:,:,j));
@@ -28,11 +40,6 @@ for j = 1:z
             for i = 1:size(Cu,2)
                 Uu(:,i,j) = (Cu(:,i)' - Xs')\[Us(:,:,j)'*Cu(:,i) - sum(Xs'.*Us(:,:,j)',2)];
             end
-            hold on;
-            quiver(Cu(1,:), Cu(2,:), Uu(1,:,j)*vU, Uu(2,:,j)*vU, 0, 'color', [0 0 cR(j)]);
-            quiver(Xs(1,:), Xs(2,:), Us(1,:,j)*vS, Us(2,:,j)*vS, 0, 'filled', 'color', [0 cR(j) 0]);
-            plot(Xs(1,:), Xs(2,:), 'o', 'linewidth', 10, 'color', 'r');
-            hold off;
         elseif(m==2)
             % Change Coordinates
             P = [W([1:d],:) v0(1:d);...
@@ -47,19 +54,34 @@ for j = 1:z
                 2*Q(3,1)*xx + 2*Q(3,2)*yy;
             % Generate contour along conic solution at 0
             hold on;
-            C = contour(xx,yy,F,[0 0], 'color', [0 0 cR(j)]);
+            C = contour(xx,yy,F,[0 0], 'linewidth', LW_SS, 'color', C_SS(j,:));
             Cu = C(:,floor(linspace(ceil(size(C,2)/nP),size(C,2)-1,nP)));
             % Generate displacements along curve
             Uu = zeros([2, nP, z]);
             for i = 1:nP
-                Uu(:,i,j) = pinv(Cu(:,i)' - Xs')*[Us(:,:,j)'*Cu(:,i) - sum(Xs'.*Us(:,:,j)',2)];
+                Uu(:,i,j) = (Cu(:,i)' - Xs')\[Us(:,:,j)'*Cu(:,i) - sum(Xs'.*Us(:,:,j)',2)];
             end
-            quiver(Cu(1,:), Cu(2,:), Uu(1,:,j)*vU, Uu(2,:,j)*vU, 0, 'color', [0 0 cR(j)]);
-            quiver(Xs(1,:), Xs(2,:), Us(1,:,j)*vS, Us(2,:,j)*vS, 0, 'filled', 'color', [0 cR(j) 0]);
-            plot(Xs(1,:), Xs(2,:), 'o', 'linewidth', 10, 'color', 'r');
-            hold off;
         end
+        % Plot
+        pInd = ~(isnan(sum(Uu(:,:,j))) | isinf(sum(Uu(:,:,j))));
+        hold on;
+        quiver(Cu(1,pInd), Cu(2,pInd), Uu(1,pInd,j)*vU, Uu(2,pInd,j)*vU, 0,...
+            'linewidth', LW_UA, 'color', C_SS(j,:));
+        plot(Cu(1,pInd), Cu(2,pInd), 'o', 'linewidth', MS_UN, 'markersize', MS_UN, 'color', C_SS(j,:));
+        quiver(Xs(1,:), Xs(2,:), Us(1,:,j)*vS, Us(2,:,j)*vS, 0, 'filled',...
+            'linewidth', LW_SA, 'color', C_SA(j,:));
+        quiver(Xs(1,:), Xs(2,:), Us(1,:,j)*vS, Us(2,:,j)*vS, 0, 'filled',...
+            'linewidth', LW_SA/3, 'color', [1 1 1]);
+        plot(Xs(1,:), Xs(2,:), 'o', 'linewidth', MS_SN, 'markersize', MS_SN, 'color', C_SN);
+        hold off;
+        set(gca,'visible',0);
+        set(gcf,'color','w');
     elseif(d==3)
+        % Spherical point
+        [xSp, ySp, zSp] = sphere(20);
+        xSp = xSp/10; 
+        ySp = ySp/10; 
+        zSp = zSp/10; 
         if(m==4)
             [xx,yy,zz] = meshgrid(linspace(R(1,1),R(1,2),nP),...
                                    linspace(R(2,1),R(2,2),nP),...
@@ -70,11 +92,6 @@ for j = 1:z
             for i = 1:size(Cu,2)
                 Uu(:,i,j) = (Cu(:,i)' - Xs')\[Us(:,:,j)'*Cu(:,i) - sum(Xs'.*Us(:,:,j)',2)];
             end
-            hold on;
-            quiver3(Cu(1,:), Cu(2,:), Cu(3,:), Uu(1,:,j)*vU, Uu(2,:,j)*vU, Uu(3,:,j)*vU, 0, 'color', [0 0 cR(j)]);
-            quiver3(Xs(1,:), Xs(2,:), Xs(3,:), Us(1,:,j)*vS, Us(2,:,j)*vS, Us(3,:,j)*vS, 0, 'filled', 'color', [0 cR(j) 0]);
-            plot3(Xs(1,:), Xs(2,:), Xs(3,:), 'o', 'markersize', 6, 'linewidth', 10, 'color', 'r');
-            hold off;
         elseif(m==3)
             % Change Coordinates
             P = [W([1:d],:) v0(1:d);...
@@ -100,12 +117,8 @@ for j = 1:z
             for i = 1:nP
                 Uu(:,i,j) = (Cu(:,i)' - Xs')\[Us(:,:,j)'*Cu(:,i) - sum(Xs'.*Us(:,:,j)',2)];
             end
-            quiver3(Cu(1,:), Cu(2,:), Cu(3,:), Uu(1,:,j)*vU, Uu(2,:,j)*vU, Uu(3,:,j)*vU, 0, 'color', [0 0 cR(j)]);
-            quiver3(Xs(1,:), Xs(2,:), Xs(3,:), Us(1,:,j)*vS, Us(2,:,j)*vS, Us(3,:,j)*vS, 0, 'filled', 'color', [0 cR(j) 0]);
-            plot3(Xs(1,:), Xs(2,:), Xs(3,:), 'o', 'markersize', 6, 'linewidth', 10, 'color', 'r');
-            hold off;
-            p.FaceColor = [0 0 cR(j)];
-            p.FaceAlpha = 0.35;
+            p.FaceColor = C_SS(j,:);
+            p.FaceAlpha = 0.5;
             p.EdgeColor = 'none';
         elseif(m==2)
             % First Coordinate Change to Cartesian Coordinates
@@ -125,7 +138,7 @@ for j = 1:z
             F = Q(1,1)*xx.^2 + Q(2,2)*yy.^2 + Q(3,3)*1 +...
                 2*Q(2,1)*xx.*yy + 2*Q(3,2)*yy + 2*Q(3,1)*xx;
             % Generate contour along conic solution at 1 in second coordinates
-            C = contour(xx,yy,F,[0 0], 'color', 'b', 'linestyle', 'none');
+            C = contour(xx,yy,F,[0 0], 'linestyle', 'none');
             C = [C(:,2:end); ones(1, size(C,2)-1)];
             % Convert second coordinates back to cartesian
             C = P2*C; C = C(:,sum(C > min(R,[],2) & C < max(R,[],2))==3);
@@ -136,12 +149,28 @@ for j = 1:z
                 Uu(:,i,j) = (Cu(:,i)' - Xs')\[Us(:,:,j)'*Cu(:,i) - sum(Xs'.*Us(:,:,j)',2)];
             end
             hold on;
-            plot3(C(1,:), C(2,:), C(3,:), '');
-            quiver3(Cu(1,:), Cu(2,:), Cu(3,:), Uu(1,:,j)*vU, Uu(2,:,j)*vU, Uu(3,:,j)*vU, 0, 'color', [0 0 cR(j)]);
-            quiver3(Xs(1,:), Xs(2,:), Xs(3,:), Us(1,:,j)*vS, Us(2,:,j)*vS, Us(3,:,j)*vS, 0, 'filled', 'color', [0 cR(j) 0]);
-            plot3(Xs(1,:), Xs(2,:), Xs(3,:), 'o', 'markersize', 6, 'linewidth', 10, 'color', 'r');
-            hold off;
+            plot3(C(1,:), C(2,:), C(3,:), '-', 'linewidth', LW_SS, 'color', C_SS(j,:));
         end
+        % Plot
+        quiver3(Cu(1,:), Cu(2,:), Cu(3,:), Uu(1,:,j)*vU, Uu(2,:,j)*vU, Uu(3,:,j)*vU, 0,...
+            'filled', 'color', C_SS(j,:), 'linewidth', LW_UA);
+        quiver3(Xs(1,:), Xs(2,:), Xs(3,:), Us(1,:,j)*vS, Us(2,:,j)*vS, Us(3,:,j)*vS, 0,...
+            'filled', 'color', C_SA(j,:), 'linewidth', LW_SA);
+        quiver3(Xs(1,:), Xs(2,:), Xs(3,:), Us(1,:,j)*vS, Us(2,:,j)*vS, Us(3,:,j)*vS, 0,...
+            'filled', 'color', [1 1 1], 'linewidth', LW_SA/3);
+        for i = 1:size(Cu,2)
+            s = surf(xSp*MS_UN/MS_SN+Cu(1,i), ySp*MS_UN/MS_SN+Cu(2,i), zSp*MS_UN/MS_SN+Cu(3,i));
+            s.FaceColor = C_SS(j,:);
+            s.EdgeColor = 'none';
+        end
+        for i = 1:size(Xs,2)
+            s = surf(xSp+Xs(1,i), ySp+Xs(2,i), zSp+Xs(3,i));
+            s.FaceColor = C_SN;
+            s.EdgeColor = 'none';
+        end
+        hold off;
+        set(gca,'XTickLabel',[],'YTickLabel',[],'ZTickLabel',[],...
+                'XTick',[],'YTick',[],'ZTick',[],'box','on','boxstyle','back');
     end
 end
 end

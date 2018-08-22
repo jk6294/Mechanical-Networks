@@ -1,4 +1,4 @@
-function [XC, fC] = sim_motion(Xs, Xu, conn, delS, n, X0)
+function [XC, fC] = sim_motion(Xs, Xu, conn, delS, n, X0, pV, connS)
 % Function for simulating the motion of frames
 % Inputs
 %       Xs:     2 X ns matrix of coordinates for specified nodes
@@ -7,9 +7,14 @@ function [XC, fC] = sim_motion(Xs, Xu, conn, delS, n, X0)
 %       delS:   Instantaneous length of motion
 %       n:      Number of steps to move forward
 %       X0      2 X N vector of desired initial direction of motion
+%       pV:     Scalar to determine plotting 0 for no plot
 % Outputs
 %       XC:     2 X N X n matrix of node motions across n time steps
 %       fC:     1 X N matrix of motion errors
+
+if ~exist('connS', 'var')
+    connS = [];
+end
 
 
 %% Lengths
@@ -19,6 +24,11 @@ X = [Xs Xu];
 N = ns + nu;
 LVal = sqrt((Xs(1,conn(:,1)) - Xu(1,conn(:,2))).^2 +...
             (Xs(2,conn(:,1)) - Xu(2,conn(:,2))).^2);
+        
+if(size(connS,1) > 0)
+    LVal = [LVal sqrt((Xs(1,connS(:,1)) - Xs(1,connS(:,2))).^2 +...
+                      (Xs(2,connS(:,1)) - Xs(2,connS(:,2))).^2)];
+end
         
         
 %% Symbolic 
@@ -30,6 +40,9 @@ g = [];
 for i = 1:size(conn,1)
     g = [g; (XS(conn(i,1)) - XS(conn(i,2)+ns))^2 + (YS(conn(i,1)) - YS(conn(i,2)+ns))^2];
 end
+for i = 1:size(connS,1)
+    g = [g; (XS(connS(i,1)) - XS(connS(i,2)))^2 + (YS(connS(i,1)) - YS(connS(i,2)))^2];
+end
 disp('1');
 J = jacobian(g, [XS; YS])/2;
 disp('2');
@@ -40,6 +53,9 @@ disp('3');
 E = (LVal(1) - sqrt((XS(conn(1,1)) - XS(conn(1,2)+ns))^2 + (YS(conn(1,1)) - YS(conn(1,2)+ns))^2))^2;
 for i = 2:size(conn,1)
     E = E + (LVal(i) - sqrt((XS(conn(i,1)) - XS(conn(i,2)+ns))^2 + (YS(conn(i,1)) - YS(conn(i,2)+ns))^2))^2;
+end
+for i = 1:size(connS,1)
+    E = E + (LVal(i+size(conn,1)) - sqrt((XS(connS(i,1)) - XS(connS(i,2)))^2 + (YS(connS(i,1)) - YS(connS(i,2)))^2))^2;
 end
 Ef = matlabFunction(E, 'Optimize', false);
 
@@ -117,16 +133,23 @@ XC(2,:,:) = reshape(yC, [1, N, n]);
 ms = 10;        % Marker Size
 lw = 2;         % Line Width
 ea = .5;        % Edge Transparency
-hold on
-line([XC(1,conn(:,1),1); XC(1,conn(:,2)+ns,1)],...
-     [XC(2,conn(:,1),1); XC(2,conn(:,2)+ns,1)],...
-     'linewidth', lw, 'color', [0 0 0 ea]);
-plot(XC(1,1:ns,1), XC(2,1:ns,1), 'ro', 'linewidth', ms)
-plot(XC(1,(1:nu)+ns,1), XC(2,(1:nu)+ns,1), 'bo', 'linewidth', ms);
-for i = 1:n
-    plot(XC(1,1:ns,i), XC(2,1:ns,i), 'r.', 'linewidth', ms)
-    plot(XC(1,(1:nu)+ns,i), XC(2,(1:nu)+ns,i), 'b.', 'linewidth', ms);
+if(pV ~= 0)
+    hold on
+    line([XC(1,conn(:,1),1); XC(1,conn(:,2)+ns,1)],...
+         [XC(2,conn(:,1),1); XC(2,conn(:,2)+ns,1)],...
+         'linewidth', lw, 'color', [0 0 0 ea]);
+    if(size(connS,1) > 0)
+        line([XC(1,connS(:,1),1); XC(1,connS(:,2),1)],...
+             [XC(2,connS(:,1),1); XC(2,connS(:,2),1)],...
+             'linewidth', lw, 'color', [0 0 0 ea]);
+    end
+    plot(XC(1,1:ns,1), XC(2,1:ns,1), 'ro', 'linewidth', ms)
+    plot(XC(1,(1:nu)+ns,1), XC(2,(1:nu)+ns,1), 'bo', 'linewidth', ms);
+    for i = 1:n
+        plot(XC(1,1:ns,i), XC(2,1:ns,i), 'r.', 'linewidth', ms)
+        plot(XC(1,(1:nu)+ns,i), XC(2,(1:nu)+ns,i), 'b.', 'linewidth', ms);
+    end
+    hold off;
 end
-hold off;
 
 end

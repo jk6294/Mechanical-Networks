@@ -1,4 +1,4 @@
-function [Uss, Uus, err] = construct_motion(Xs, Us, Xu, conn, vS, vU)
+function [Uss, Uus, err] = construct_motion(Xs, Us, Xu, conn, vS, vU, connS)
 % Function to generate instantaneous motions
 %
 % Inputs
@@ -6,35 +6,44 @@ function [Uss, Uus, err] = construct_motion(Xs, Us, Xu, conn, vS, vU)
 % Us: d x ns x z matrix of z sets of specified node motions as reference
 % Xu: d x nu matrix of unspecified node positions
 % conn: s x 2 matrix of connections between sp. node i and unsp. node j
-% vS: scalar: If positive, v scales specified vectors. <0 to omit plot
-% vU: scalar: If positive, v scales unspecified vectors. <0 to omit plot
+% vS: scalar: If positive, v scales specified vectors. 0 to omit plot
+% vU: scalar: If positive, v scales unspecified vectors. 0 to omit plot
+% connS: k x 2 matrix of connections between specfied nodes i and j
 %
 % Outputs
 % Us: d x ns x m matrix of m non-rigid degrees of freedom of sp. nodes
 % Uu: d x nu x m matrix of m non-rigid degrees of freedom of unsp. nodes
 % err: 1 x z: error between actual and reconstructed motion
 
+if ~exist('connS', 'var')
+    connS = [];
+end
+
 % Initial Values
 d = size(Xs,1);
 ns = size(Xs,2);
 nu = size(Xu,2);
 L = ns + nu;
-s = size(conn,1);
+s1 = size(conn,1);
+s2 = size(connS,1);
 X = [Xs Xu];
 z = size(Us,3);
-cR = linspace(.5, 1, z);
 
 % Construct rigidity matrix
-R = zeros(s, d*(L));
+R = zeros(s1, d*(L));
 dInd = ([1:d]-1) * L;
-for i = 1:s
+for i = 1:s1
     R(i,conn(i,1) + dInd) = (Xs(:,conn(i,1)) - Xu(:,conn(i,2)))';
     R(i,conn(i,2) + ns + dInd) = (Xu(:,conn(i,2)) - Xs(:,conn(i,1)))';
+end
+for i = 1:s2
+    R(s1+i,connS(i,1) + dInd) = (Xs(:,connS(i,1)) - Xu(:,connS(i,2)))';
+    R(s1+i,connS(i,2) + dInd) = (Xs(:,connS(i,2)) - Xu(:,connS(i,1)))';
 end
 
 % Find motions
 D = null(R);
-nSS = size(D,2) - (d*(L) - s);
+nSS = size(D,2) - (d*(L) - s1 - s2);
 if(d==2)
     % Rotation function
     fRot = @(xP, yP) [sqrt(xP.^2 + yP.^2); sqrt(xP.^2 + yP.^2)] .*...
@@ -49,7 +58,7 @@ elseif(d==3)
     fRx = @(xP, yP) [zeros([length(xP),1]); sqrt(xP.^2 + yP.^2); sqrt(xP.^2 + yP.^2)] .*...
                     [zeros([length(xP),1]); -sin(atan2(yP, xP)); cos(atan2(yP, xP))];
     fRy = @(xP, yP) [sqrt(xP.^2 + yP.^2); zeros([length(xP),1]); sqrt(xP.^2 + yP.^2)] .*...
-                    [-sin(atan2(yP, xP)); zeros([length(xP),1]); cos(atan2(yP, xP))];
+                    [cos(atan2(yP, xP)); zeros([length(xP),1]); -sin(atan2(yP, xP))];
     T = [ones([1,L]), zeros([1,L]), zeros([1,L]);...    % x-translation
          zeros([1,L]), ones([1,L]), zeros([1,L]);...    % y-translation
          zeros([1,L]), zeros([1,L]), ones([1,L]);...    % z-translation
@@ -59,19 +68,27 @@ elseif(d==3)
 end
 
 % Remove rigid body motions
-% U = D * null(T*D);
-dIndL = repmat(dInd', [1,ns]) + [1:ns];
-Uss = zeros(d,ns,z);
-Uus = zeros(d,nu,z);
-for i = 1:z
-    UsP = Us(:,:,i);
-    cU = pinv(D([dIndL(:)],:))*UsP(:);
-    U = D*cU;
+dIndL = (repmat(dInd', [1,ns]) + [1:ns]);
+Uss = zeros(d,ns,max(z,1));
+Uus = zeros(d,nu,max(z,1));
+if(z==0)
+    U = D*null(T*D);
     for j = 1:d
-        Uss(j,:,i) = U((1:ns) + (j-1)*L)';
-        Uus(j,:,i) = U((1:nu) + ns + (j-1)*L)';
+        Uss(j,:) = U((1:ns) + (j-1)*L)';
+        Uus(j,:) = U((1:nu) + ns + (j-1)*L)';
     end
-    err(i) = sum(sum(abs(UsP - Uss(:,:,i))));
+    err = 0;
+else
+    for i = 1:z
+        UsP = Us(:,:,i);
+        cU = pinv(D([dIndL(:)],:))*UsP(:);
+        U = D*cU;
+        for j = 1:d
+            Uss(j,:,i) = U((1:ns) + (j-1)*L)';
+            Uus(j,:,i) = U((1:nu) + ns + (j-1)*L)';
+        end
+        err(i) = sum(sum(abs(UsP - Uss(:,:,i))));
+    end
 end
 
 % Error for states of self-stress
@@ -83,36 +100,67 @@ end
 
 % Visualize
 % Plot Parameters
-ms = 10;        % Marker Size
-lw = 2;         % Line Width
-ea = .5;        % Edge Transparency
-if(vS>=0 && vU >= 0)
+ms = 8;                         % Marker Size
+lw = 2;                         % Line Width
+ea = .5;                        % Edge Transparency
+C_SN = [255 100 100]/255;       % Color of Specified Node
+C_SA = [76 187 23;...           % Color of Specified Arrow
+        50 255 50]/255;         
+C_UN = [100 100 255]/255;       % Color of Solution Space   
+if(vS~=0 && vU ~= 0)
     hold on;
     if(d==2)
-        for i = 1:z
-            quiver(Xs(1,:), Xs(2,:), Uss(1,:,i)*vS, Uss(2,:,i)*vS,...
-                   0, 'linewidth', lw, 'color', [0, cR(i), 0]);
-            quiver(Xu(1,:), Xu(2,:), Uus(1,:,i)*vU, Uus(2,:,i)*vU,...
-                   0, 'linewidth', lw, 'color', [0, cR(i), 0]);
+        for i = 1:max(z,1)
+            X = [Xs Xu];
+            U = [Uss(:,:,i)*vS Uus(:,:,i)*vU];
+            quiver(X(1,:), X(2,:),U(1,:), U(2,:), 0, 'linewidth', lw, 'color', C_SA(i,:));
         end
         line([Xs(1,conn(:,1)); Xu(1,conn(:,2))],...
              [Xs(2,conn(:,1)); Xu(2,conn(:,2))],...
              'linewidth', lw, 'color', [0 0 0 ea]);
-        plot(Xs(1,:), Xs(2,:), 'ro', 'linewidth', ms)
-        plot(Xu(1,:), Xu(2,:), 'bo', 'linewidth', ms);
-    elseif(d==3)
-        for i = 1:z
-            quiver3(Xs(1,:), Xs(2,:), Xs(3,:), Uss(1,:,i)*vS, Uss(2,:,i)*vS, Uss(3,:,i)*vS,...
-                   0, 'linewidth', lw, 'color', [0, cR(i), 0]);
-            quiver3(Xu(1,:), Xu(2,:), Xu(3,:), Uus(1,:,i)*vU, Uus(2,:,i)*vU, Uus(3,:,i)*vU,...
-                   0, 'linewidth', lw, 'color', [0, cR(i), 0]);
+        if(s2 > 0)
+            line([Xs(1,connS(:,1)); Xs(1,connS(:,2))],...
+                 [Xs(2,connS(:,1)); Xs(2,connS(:,2))],...
+                 'linewidth', lw, 'color', [0 0 0 ea]);
         end
-        plot3(Xs(1,:), Xs(2,:), Xs(3,:), 'ro', 'linewidth', ms)
-        plot3(Xu(1,:), Xu(2,:), Xu(3,:), 'bo', 'linewidth', ms);
+        plot(Xs(1,:), Xs(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_SN)
+        plot(Xu(1,:), Xu(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_UN);
+        set(gca,'visible',0);
+        set(gcf,'color','w');
+    elseif(d==3)
+        % Spherical point
+        [xSp, ySp, zSp] = sphere(20);
+        xSp = xSp/10; 
+        ySp = ySp/10; 
+        zSp = zSp/10; 
+        for i = 1:max(z,1)
+            X = [Xs Xu];
+            U = [Uss(:,:,i)*vS Uus(:,:,i)*vU];
+            quiver3(X(1,:), X(2,:), X(3,:), U(1,:), U(2,:), U(3,:),...
+                   0, 'linewidth', lw, 'color', C_SA(i,:));
+        end
+        for i = 1:size(Xu,2)
+            s = surf(xSp+Xu(1,i), ySp+Xu(2,i), zSp+Xu(3,i));
+            s.FaceColor = C_UN;
+            s.EdgeColor = 'none';
+        end
+        for i = 1:size(Xs,2)
+            s = surf(xSp+Xs(1,i), ySp+Xs(2,i), zSp+Xs(3,i));
+            s.FaceColor = C_SN;
+            s.EdgeColor = 'none';
+        end
         line([Xs(1,conn(:,1)); Xu(1,conn(:,2))],...
              [Xs(2,conn(:,1)); Xu(2,conn(:,2))],...
              [Xs(3,conn(:,1)); Xu(3,conn(:,2))],...
              'linewidth', lw, 'color', [0 0 0 ea]);
+        if(s2 > 0)
+            line([Xs(1,connS(:,1)); Xs(1,connS(:,2))],...
+                 [Xs(2,connS(:,1)); Xs(2,connS(:,2))],...
+                 [Xs(3,connS(:,1)); Xs(3,connS(:,2))],...
+                 'linewidth', lw, 'color', [0 0 0 ea]);
+        end
+        set(gca,'XTickLabel',[],'YTickLabel',[],'ZTickLabel',[],...
+                'XTick',[],'YTick',[],'ZTick',[],'box','on','boxstyle','back');
     end
     hold off;
 end

@@ -15,13 +15,12 @@ function [Q, W, v0, err] = construct_conic(X, U)
 % Initialize Values and Matrices
 d = size(X,1);                          % Dimensions
 N = size(X,2);                          % Nodes
-At = [U' X' -ones(N,1)];                % \tilde{A} from main text
+At = sym([U' X' -ones(N,1)]);                % \tilde{A} from main text
 O = [zeros(d) eye(d) zeros(d,1);...     % O from supplement 
      eye(d)   zeros(d,d+1);...
      zeros(1,2*d+1)]/2;
-b = sum(X.*U)';
+b = sum(sym(X.*U))';
 p = [zeros([1, 2*d]), 1];               % Inidicator vector
-
 
 % Find homogeneous and non-homogenous solutions to linear problem
 W = null(At);           % Nullspace gives homogeneous solutions
@@ -34,4 +33,9 @@ BP = (2*v0'*O - p)*W/2;
 CP = (v0'*O - p)*v0;
 Q = [AP, BP';...
      BP, CP];
+
+% Reconvert to Double
+Q = double(Q);
+W = double(W);
+v0 = double(v0);
 end

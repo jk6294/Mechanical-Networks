@@ -1,4 +1,4 @@
-function [XC, fC] = sim_motion(Xs, Xu, conn, delS, n, X0)
+function [XC, fC] = sim_motion3D(Xs, Xu, conn, delS, n, X0, pV, connS)
 % Function for simulating the motion of frames
 % Inputs
 %       Xs      3 X ns matrix of coordinates for specified nodes
@@ -11,15 +11,25 @@ function [XC, fC] = sim_motion(Xs, Xu, conn, delS, n, X0)
 %       XC:     3 X N X n matrix of node motions across n time steps
 %       fC:     1 X n matrix of motion errors
 
+if ~exist('connS', 'var')
+    connS = [];
+end
+
 
 %% Lengths
 ns = size(Xs,2);
 nu = size(Xu,2);
 X = [Xs Xu];
 N = ns + nu;
-LVal = sqrt((Xs(1,conn(:,1)) - Xu(1,conn(:,2))).^2 +...
-            (Xs(2,conn(:,1)) - Xu(2,conn(:,2))).^2 +...
-            (Xs(3,conn(:,1)) - Xu(3,conn(:,2))).^2);
+LVal = [sqrt((Xs(1,conn(:,1)) - Xu(1,conn(:,2))).^2 +...
+             (Xs(2,conn(:,1)) - Xu(2,conn(:,2))).^2 +...
+             (Xs(3,conn(:,1)) - Xu(3,conn(:,2))).^2)];
+         
+if(size(connS,1) > 0)
+    LVal = [LVal sqrt((Xs(1,connS(:,1)) - Xs(1,connS(:,2))).^2 +...
+                      (Xs(2,connS(:,1)) - Xs(2,connS(:,2))).^2 +...
+                      (Xs(3,connS(:,1)) - Xs(3,connS(:,2))).^2)];
+end
         
         
 %% Symbolic 
@@ -32,6 +42,9 @@ g = [];
 for i = 1:size(conn,1)
     g = [g; (XS(conn(i,1)) - XS(conn(i,2)+ns))^2 + (YS(conn(i,1)) - YS(conn(i,2)+ns))^2 + (ZS(conn(i,1)) - ZS(conn(i,2)+ns))^2];
 end
+for i = 1:size(connS,1)
+    g = [g; (XS(connS(i,1)) - XS(connS(i,2)))^2 + (YS(connS(i,1)) - YS(connS(i,2)))^2 + (ZS(connS(i,1)) - ZS(connS(i,2)))^2];
+end
 disp('1');
 J = jacobian(g, [XS; YS; ZS])/2;
 disp('2');
@@ -42,6 +55,9 @@ disp('3');
 E = (LVal(1) - sqrt((XS(conn(1,1)) - XS(conn(1,2)+ns))^2 + (YS(conn(1,1)) - YS(conn(1,2)+ns))^2 + (ZS(conn(1,1)) - ZS(conn(1,2)+ns))^2))^2;
 for i = 2:size(conn,1)
     E = E + (LVal(i) - sqrt((XS(conn(i,1)) - XS(conn(i,2)+ns))^2 + (YS(conn(i,1)) - YS(conn(i,2)+ns))^2 + (ZS(conn(i,1)) - ZS(conn(i,2)+ns))^2))^2;
+end
+for i = 1:size(connS,1)
+    E = E + (LVal(i+size(conn,1)) - sqrt((XS(connS(i,1)) - XS(connS(i,2)))^2 + (YS(connS(i,1)) - YS(connS(i,2)))^2 + (ZS(connS(i,1)) - ZS(connS(i,2)))^2))^2;
 end
 Ef = matlabFunction(E, 'Optimize', false);
 
@@ -55,7 +71,7 @@ fRz = @(xP, yP) [sqrt(xP.^2 + yP.^2); sqrt(xP.^2 + yP.^2); zeros([length(xP),1])
 fRx = @(xP, yP) [zeros([length(xP),1]); sqrt(xP.^2 + yP.^2); sqrt(xP.^2 + yP.^2)] .*...
                 [zeros([length(xP),1]); -sin(atan2(yP, xP)); cos(atan2(yP, xP))];
 fRy = @(xP, yP) [sqrt(xP.^2 + yP.^2); zeros([length(xP),1]); sqrt(xP.^2 + yP.^2)] .*...
-                [-sin(atan2(yP, xP)); zeros([length(xP),1]); cos(atan2(yP, xP))];
+                [cos(atan2(yP, xP)); zeros([length(xP),1]); -sin(atan2(yP, xP))];
 
 
 %% RK4 Approximation
@@ -132,20 +148,28 @@ XC(3,:,:) = reshape(zC, [1, N, n]);
 ms = 10;        % Marker Size
 lw = 2;         % Line Width
 ea = .5;        % Edge Transparency
-hold on
-line([XC(1,conn(:,1),1); XC(1,conn(:,2)+ns,1)],...
-     [XC(2,conn(:,1),1); XC(2,conn(:,2)+ns,1)],...
-     [XC(3,conn(:,1),1); XC(3,conn(:,2)+ns,1)],...
-     'linewidth', lw, 'color', [0 0 0 ea]);
-plot3(XC(1,1:ns,1), XC(2,1:ns,1), XC(3,1:ns,1),...
-    'ro', 'linewidth', ms)
-plot3(XC(1,(1:nu)+ns,1), XC(2,(1:nu)+ns,1), XC(3,(1:nu)+ns,1),...
-    'bo', 'linewidth', ms);
-for i = 1:n
-    plot3(XC(1,1:ns,i), XC(2,1:ns,i), XC(3,1:ns,i),...
-        'r.', 'linewidth', ms/10)
-    plot3(XC(1,(1:nu)+ns,i), XC(2,(1:nu)+ns,i), XC(3,(1:nu)+ns,i),...
-        'b.', 'linewidth', ms/10);
+if(pV ~= 0)
+    hold on
+    line([XC(1,conn(:,1),1); XC(1,conn(:,2)+ns,1)],...
+         [XC(2,conn(:,1),1); XC(2,conn(:,2)+ns,1)],...
+         [XC(3,conn(:,1),1); XC(3,conn(:,2)+ns,1)],...
+         'linewidth', lw, 'color', [0 0 0 ea]);
+    if(size(connS,1) > 0)
+        line([XC(1,connS(:,1),1); XC(1,connS(:,2),1)],...
+             [XC(2,connS(:,1),1); XC(2,connS(:,2),1)],...
+             [XC(3,connS(:,1),1); XC(3,connS(:,2),1)],...
+             'linewidth', lw, 'color', [0 0 0 ea]);
+    end
+    plot3(XC(1,1:ns,1), XC(2,1:ns,1), XC(3,1:ns,1),...
+        'ro', 'linewidth', ms)
+    plot3(XC(1,(1:nu)+ns,1), XC(2,(1:nu)+ns,1), XC(3,(1:nu)+ns,1),...
+        'bo', 'linewidth', ms);
+    for i = 1:n
+        plot3(XC(1,1:ns,i), XC(2,1:ns,i), XC(3,1:ns,i),...
+            'r.', 'linewidth', ms/10)
+        plot3(XC(1,(1:nu)+ns,i), XC(2,(1:nu)+ns,i), XC(3,(1:nu)+ns,i),...
+            'b.', 'linewidth', ms/10);
+    end
+    hold off;
 end
-hold off;
 end
