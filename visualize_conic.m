@@ -15,7 +15,7 @@ function [] = visualize_conic(Xs, Us, R, nC, nP, vS, vU)
 LW_SA = 5;                      % Line Width of Specified Arrow
 LW_UA = 1;                      % Line Width of Unspecified Arrows
 LW_SS = 2;                      % Line Width of Solution Space
-MS_SN = 8;                     % Marker Size of Specified Node
+MS_SN = 8;                      % Marker Size of Specified Node
 MS_UN = 3;                      % Marker Size of Unspecified Node
 C_SN = [255 100 100]/255;       % Color of Specified Node
 C_SA = [76 187 23;...           % Color of Specified Arrow
@@ -23,16 +23,15 @@ C_SA = [76 187 23;...           % Color of Specified Arrow
 C_SS = [100 100 255;...         % Color of Solution Space
         100 200 255]/255;       
 
-z = size(Us,3);         % Total number of motions
+z = size(Us,3);                 % Total number of motions
 for j = 1:z
     [Q, W, v0, err] = construct_conic(Xs, Us(:,:,j));
-    d = size(Xs,1);         % Dimension of Space
-    m = size(Q,1)-1;        % Number of homogeneous variables
-    cR = linspace(.5, 1, z);
+    d = size(Xs,1);             % Dimension of Space
+    nDOF = size(Q,1)-1;         % Number of homogeneous variables
     
-    % 2 Dimensional Space, 1D solution
+    % 2 Dimensional Space
     if(d==2)
-        if(m==3)
+        if(nDOF==3)
             [xx, yy] = meshgrid(linspace(R(1,1),R(1,2),nP),...
                                 linspace(R(2,1),R(2,2),nP));
             Cu = [xx(:) yy(:)]';
@@ -40,7 +39,7 @@ for j = 1:z
             for i = 1:size(Cu,2)
                 Uu(:,i,j) = (Cu(:,i)' - Xs')\[Us(:,:,j)'*Cu(:,i) - sum(Xs'.*Us(:,:,j)',2)];
             end
-        elseif(m==2)
+        elseif(nDOF==2)
             % Change Coordinates
             P = [W([1:d],:) v0(1:d);...
                  zeros(1,d) 1]^-1;
@@ -82,17 +81,17 @@ for j = 1:z
         xSp = xSp/10; 
         ySp = ySp/10; 
         zSp = zSp/10; 
-        if(m==4)
+        if(nDOF==4)
             [xx,yy,zz] = meshgrid(linspace(R(1,1),R(1,2),nP),...
-                                   linspace(R(2,1),R(2,2),nP),...
-                                   linspace(R(3,1),R(3,2),nP));
+                                  linspace(R(2,1),R(2,2),nP),...
+                                  linspace(R(3,1),R(3,2),nP));
             Cu = [xx(:) yy(:) zz(:)]';
             % Generate displacements along curve
             Uu = zeros([size(Cu), z]);
             for i = 1:size(Cu,2)
                 Uu(:,i,j) = (Cu(:,i)' - Xs')\[Us(:,:,j)'*Cu(:,i) - sum(Xs'.*Us(:,:,j)',2)];
             end
-        elseif(m==3)
+        elseif(nDOF==3)
             % Change Coordinates
             P = [W([1:d],:) v0(1:d);...
                  zeros(1,d) 1]^-1;
@@ -120,7 +119,7 @@ for j = 1:z
             p.FaceColor = C_SS(j,:);
             p.FaceAlpha = 0.5;
             p.EdgeColor = 'none';
-        elseif(m==2)
+        elseif(nDOF==2)
             % First Coordinate Change to Cartesian Coordinates
             P = [W([1:d],:) v0(1:d)]^-1;
             % Define Plane of Intersection

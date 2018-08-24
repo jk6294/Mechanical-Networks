@@ -41,7 +41,7 @@ camlight(azC, elC); lighting gouraud; material([.4 1 0]);
 subplot(12,24,nPan1+8)
 Xs = [[-1 1];...
       [0 0]];
-Us = [[-1 1];...
+Us = -[[-1 1];...
       [0 0]]/4;
 visualize_conic(Xs, Us, [-1 1; -1 1]*1.7, [100 100], 7, 1, 1);
 axis(1.8*[-1 1 -1 1]);
@@ -117,9 +117,9 @@ conn1 = [1 1; 2 1; 3 1; 4 1;...
 conn2 = [1 2; 1 3; 2 1; 2 2; 2 3; 2 4;...
          3 1; 3 4; 4 1; 4 2; 4 3; 4 4];
 % Initial guesses for unspecified node positions
-x01 = [[-sqrt(2) sqrt(2)];...
+xS1 = [[-sqrt(2) sqrt(2)];...
        [0 0]];
-x02 = [[-sqrt(2) 0 sqrt(2) 0];...
+xS2 = [[-sqrt(2) 0 sqrt(2) 0];...
        [0 sqrt(2) 0 -sqrt(2)]];
 
    
@@ -131,14 +131,14 @@ axis(1.5*[-1 1 -1 1]);
 
 % b: Find positions of unspecified nodes, and corresponding motions
 subplot(12,24,nPan1+8)
-[Xu1 fV1] = construct_network(Xs, Us, x01, conn1, 0);
+[Xu1 fV1] = construct_network(Xs, Us, xS1, conn1, 0);
 [Us1, Uu1, err1] = construct_motion(Xs, Us, Xu1, conn1, 1, 1);
 axis(1.5*[-1 1 -1 1]);
 
 
 % c:  Find positions of unspecified nodes, and corresponding motions
 subplot(12,24,nPan1+16)
-[Xu2 fV2] = construct_network(Xs, Us, x02, conn2, 0);
+[Xu2 fV2] = construct_network(Xs, Us, xS2, conn2, 0);
 [Us2, Uu2, err2] = construct_motion(Xs, Us, Xu2, conn2, 1, 1);
 axis(1.5*[-1 1 -1 1]);
 
@@ -163,10 +163,10 @@ conn2 = [1 1; 2 1; 3 1; 4 1; 5 1; 6 1; 7 1; 8 1;...
          3 4; 4 4; 5 4; 7 4; 8 4;...
          1 5; 2 5; 3 5; 5 5; 7 5; 8 5];
 % Initial guesses for unspecified node positions
-x01 = [[-sqrt(3)  sqrt(3)  0        0        0        0      ];...
+xS1 = [[-sqrt(3)  sqrt(3)  0        0        0        0      ];...
        [0         0       -sqrt(3)  sqrt(3)  0        0      ];...
 	   [0         0        0        0       -sqrt(3)  sqrt(3)]]*.8;
-x02 = [[-sqrt(3)  sqrt(3)  0        0        0      ];...
+xS2 = [[-sqrt(3)  sqrt(3)  0        0        0      ];...
 	   [0         0       -sqrt(3)  sqrt(3)  0      ];...
 	   [0         0        0        0       -sqrt(3)]]*.8;
    
@@ -181,7 +181,7 @@ camlight(azC, elC); lighting gouraud; material([.4 1 0]);
 
 % e: Find positions of unspecified nodes, and corresponding motions
 subplot(12,24,nPan2+24*6+8)
-[Xu1 fV1] = construct_network(Xs, Us, x01, conn1, 0);
+[Xu1 fV1] = construct_network(Xs, Us, xS1, conn1, 0);
 [Us1, Uu1, err1] = construct_motion(Xs, Us, Xu1, conn1, 1, 1);
 axis(1.5*[-1 1 -1 1 -1 1]);
 view(az, el);
@@ -190,7 +190,7 @@ camlight(azC, elC); lighting gouraud; material([.4 1 0]);
 
 % f: Find positions of unspecified nodes, and corresponding motions
 subplot(12,24,nPan2+24*6+16)
-[Xu2 fV2] = construct_network(Xs, Us, x02, conn2, 0);
+[Xu2 fV2] = construct_network(Xs, Us, xS2, conn2, 0);
 [Us2, Uu2, err2] = construct_motion(Xs, Us, Xu2, conn2, 1, 1);
 axis(1.5*[-1 1 -1 1 -1 1]);
 view(az, el);
@@ -303,6 +303,16 @@ view(az, el);
 camlight(azC, elC); lighting gouraud; material([.4 1 0]);
 
 
+% Size and Save Figure
+fName = 'multi';
+set(gcf, 'Renderer', 'opengl'); 
+fig.PaperPositionMode = 'manual';
+fig.PaperUnits = 'inches';
+fig.PaperPosition = [0 0 19.2 10.8];
+fig.PaperSize = [19.2 10.8];
+% print(['Figures\' fName], '-dpng','-r300');
+
+
 %% Figure 5b-d
 figure(5); clf;
 % Subplot Panel Sizes
@@ -352,7 +362,7 @@ construct_motion(XMot2(:,1:size(XsT,2),end), zeros(0,0,0), XMot2(:,[1:size(XuT,2
 axis([-4 12 -2 10]);
 
 
-%% 3D
+% 3D
 subplot(12,24,nPan2+24*6); cla;
 
 % Positions
@@ -370,12 +380,12 @@ Us2 = [[1 -1 1 0 0];...
        [0 0 0 1 -1];...
        [1 -1 0 0 0]]*.4;
 % Initial guess for unspecified nodes
-x01 = [[3.092 0.808 2.183];...
+xS1 = [[3.092 0.808 2.183];...
        [2.758 -0.930 1.516];...
        [2.758 0.930 1.516];...
        [2 -.77 2.061];...
        [2 .77 2.061]]';
-x02 = [[5.081 -0.648 3.313];...
+xS2 = [[5.081 -0.648 3.313];...
        [5.081 0.648 3.313];...
        [6.184 -1.000 1.737];...
        [5.121 -1.287 2.626];...
@@ -388,10 +398,10 @@ conn = [1 1; 2 1; 3 1; 4 1; 5 1;...
         1 5; 2 5; 3 5; 5 5];
 
 % Simulate Motion
-[Xu1 fV] = construct_network(Xs1, Us1, x01, conn, 0);
+[Xu1 fV] = construct_network(Xs1, Us1, xS1, conn, 0);
 [Usp, Uup, err] = construct_motion(Xs1, -Us1, Xu1, conn, 1, 1);
 
-[Xu2 fV] = construct_network(Xs2, Us2, x02, conn, 0);
+[Xu2 fV] = construct_network(Xs2, Us2, xS2, conn, 0);
 [Usp, Uup, err] = construct_motion(Xs2, -Us2, Xu2, conn, 1, 1);
 
 axis([.9 19.1 -3 1.4 .5 3.5]);
@@ -425,3 +435,99 @@ fig.PaperSize = [19.2 10.8];
 
 
 %% Figure 6
+figure(6); clf;
+nPan1 = [];
+for i = 1:5; nPan1 = [nPan1, [1:4]+(i-1)*24]; end
+nPan2 = [];
+for i = 1:6; nPan2 = [nPan2, [1:24]+(i-1)*24]; end
+az = 30; el = 25;         % Views
+
+% Test
+x0 = [-1 -1 1 1;...
+       -1 1 1 -1]/2;
+xF = [-1 -1 1 1;...
+       -1 1 1 -1]*0.8;   
+subplot(2,3,1);
+visualize_conic_finite(x0, xF, [-2 2; -2 2], [100; 100], 8, 1, 1);
+
+
+xS1 = [-2 -2 -1 -1;...
+       -1  1  0  0;...
+        0  0 -1  1]/2;
+xF1 = xS1 - [ 0     0     0    0;...
+             -1     1     0    0;...
+              0     0     1   -1]*.3;
+        
+xS2 = [ 2  2  1  1;...
+       -1  1  0  0;...
+        0  0 -1  1]/2;
+xF2 = xS2 - [ 0     0     0    0;...
+             -1     1     0    0;...
+              0     0     1   -1]*.3;
+
+x01 = [-1.6  0.1  0.6;...
+       -1.6 -0.1  0.6;...
+       -1.5  0.3  0.6;...
+       -1.5 -0.3  0.6;...
+       -1.2  0.2 -0.5;...
+       -1.2 -0.2 -0.5]';
+x02 = [0.8 -0.2  0.9;...
+       0.8  0.2  0.9;...
+       1.8 -0.4  0.4;...
+       1.8  0.4  0.4;...
+       1.1 -0.3 -0.8;...
+       1.1  0.3 -0.8]';
+conn1 = [1 1; 2 1; 3 1; 4 1;...
+         1 2; 2 2; 3 2; 4 2;...
+         1 3; 2 3; 3 3; 4 3;...
+         1 4; 2 4; 3 4; 4 4;...
+         1 5; 2 5; 3 5; 4 5;...
+         1 6; 2 6; 3 6; 4 6];
+     
+xC = [-1 -1  0        0        1  1;...
+       0  0 -sqrt(2)  sqrt(2)  0  0;...
+      -1  1  0        0       -1  1]/2;
+x0C = [ 0   -0.4  0.6;...
+        0    0.4  0.6;...
+       -0.7  0.0  0.0;...
+        0.7  0.0  0.0]';
+uC = xC/2;
+connC = [1 1; 2 1; 3 1; 4 1; 5 1; 6 1;...
+         1 2; 2 2; 3 2; 4 2; 5 2; 6 2;...
+         1 3; 2 3; 3 3; 4 3; 5 3; 6 3;...
+         1 4; 2 4; 3 4; 4 4; 5 4];
+
+        
+subplot(2,3,1);
+visualize_conic_finite(xS1, xF1, [-2 2; -1 1; -1 1]*1, [100; 100; 100], 10, 1, 1);
+view(az, el);
+camlight(azC, elC); lighting gouraud; material([.4 1 0]);
+subplot(2,3,2);
+visualize_conic_finite(xS2, xF2, [-2 2; -1 1; -1 1]*1, [100; 100; 100], 10, 1, 1);
+view(az, el);
+camlight(azC, elC); lighting gouraud; material([.4 1 0]);
+subplot(2,3,3);
+[Xu1, fV] = construct_network_finite(xS1, xF1, x01, conn1, 1);
+subplot(2,3,4);
+[Xu2, fV] = construct_network_finite(xS2, xF2, x02, conn1, 1);
+subplot(2,3,5);
+visualize_conic(xC, uC, [-1 1; -1 1; -1 1]*2, [100; 100; 100], 10, 1, 1);
+[xCu, fV] = construct_network(xC, uC, x0C, connC, 1);
+view(az, el);
+camlight(azC, elC); lighting gouraud; material([.4 1 0]);
+subplot(2,3,6);
+[XsT, XuT, connT] = tesselate_network([xS1 xS2 xC], [Xu1(1:3,:) Xu2(1:3,:) xCu], [conn1; conn1+[4 6]; connC+[8 12]], [0 0 0]', [1 1 1]');
+[XV, FV] = sim_motion3D_con(XsT, XuT, connT, 0.005, 170, [1 2], xF1(:,[1 2]));
+
+
+
+% plot3(x0(1,:), x0(2,:), x0(3,:), '.', 'markersize', 24);
+
+
+
+
+
+
+
+
+
