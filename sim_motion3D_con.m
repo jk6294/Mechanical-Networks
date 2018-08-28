@@ -25,9 +25,23 @@ Us = XF - Xs(:,XN);
         
         
 %% Symbolic 
+sInds = [XN, XN+N, XN+2*N];
+nInds = setdiff(1:(3*N), sInds);
+XNN = setdiff(1:N, XN);
+
 XS = sym('x', [N, 1]); assume(XS, 'real');
 YS = sym('y', [N, 1]); assume(YS, 'real');
 ZS = sym('z', [N, 1]); assume(ZS, 'real');
+
+XSC = XS(XN);
+YSC = YS(XN);
+ZSC = ZS(XN);
+
+XSN = XS(XNN);
+YSN = YS(XNN);
+ZSN = ZS(XNN);
+
+
 
 % Constraints
 g = [];
@@ -35,9 +49,9 @@ for i = 1:size(conn,1)
     g = [g; (XS(conn(i,1)) - XS(conn(i,2)+ns))^2 + (YS(conn(i,1)) - YS(conn(i,2)+ns))^2 + (ZS(conn(i,1)) - ZS(conn(i,2)+ns))^2];
 end
 disp('1');
-J = jacobian(g, [XS; YS; ZS])/2;
+% J = jacobian(g, [XS; YS; ZS])/2;
 disp('2');
-Jf = matlabFunction(J, 'Optimize', false, 'Sparse', true);
+% Jf = matlabFunction(J, 'Optimize', false, 'Sparse', true);
 disp('3');
 
 % Energy
@@ -45,7 +59,9 @@ E = (LVal(1) - sqrt((XS(conn(1,1)) - XS(conn(1,2)+ns))^2 + (YS(conn(1,1)) - YS(c
 for i = 2:size(conn,1)
     E = E + (LVal(i) - sqrt((XS(conn(i,1)) - XS(conn(i,2)+ns))^2 + (YS(conn(i,1)) - YS(conn(i,2)+ns))^2 + (ZS(conn(i,1)) - ZS(conn(i,2)+ns))^2))^2;
 end
-Ef = matlabFunction(E, 'Optimize', false, 'Vars', {[XS; YS; ZS]});
+options = optimset('MaxFunEvals', 1e8, 'MaxIter', 1e6);
+Ef = matlabFunction(E, 'Optimize', false, 'Vars', {[XSC; YSC; ZSC; XSN; YSN; ZSN]});
+% Ef = matlabFunction(E, 'Optimize', false, 'Vars', {[XS; YS; ZS]});
 
 
 % Rigid Body Motions
@@ -70,25 +86,32 @@ Aeq = zeros([6,3*N]);
 Aeq(:,[XN, XN+N, XN+2*N]) = eye(6);
 
 
+
 fprintf([repmat('.',1,n-1) '\n\n']);
 for i = 2:n
     XP1 = xC(:,i-1); YP1 = yC(:,i-1); ZP1 = zC(:,i-1);
     XP = [XP1; YP1; ZP1];
-    P = fmincon(Ef, XP, [], [], Aeq, [xC(XN,i-1)+delS*Us(1,XN)'; yC(XN,i-1)+delS*Us(2,XN)'; zC(XN,i-1)+delS*Us(3,XN)']);
-    
+%     P = fmincon(Ef, XP, [], [], Aeq, [xC(XN,i-1)+delS*Us(1,XN)'; yC(XN,i-1)+delS*Us(2,XN)'; zC(XN,i-1)+delS*Us(3,XN)'], [], [], [], options);
+    c = [xC(XN,i-1)+delS*Us(1,:)'; yC(XN,i-1)+delS*Us(2,:)'; zC(XN,i-1)+delS*Us(3,:)'];
+    P = fminsearch(@(x) Ef([c; x]), XP(nInds'), options);
     fprintf('\b=\n');
     
-    xC(:,i) = P(1:N)';
-    yC(:,i) = P([1:N]+N)';
-    zC(:,i) = P([1:N]+2*N)';
-%     delX(:,i) = [xC(:,i)-xC(:,i-1);...
-%                  yC(:,i)-yC(:,i-1);...
-%                  zC(:,i)-zC(:,i-1)]*6/delS;
+    xC(XN,i) = xC(XN,i-1)+delS*Us(1,:)';
+    yC(XN,i) = yC(XN,i-1)+delS*Us(2,:)';
+    zC(XN,i) = zC(XN,i-1)+delS*Us(3,:)';
     
-    fC(i) = Ef([xC(:,i); yC(:,i); zC(:,i)]);
+    xC(XNN,i) = P(1:length(XNN))';
+    yC(XNN,i) = P([1:length(XNN)]+length(XNN))';
+    zC(XNN,i) = P([1:length(XNN)]+2*length(XNN))';
+    fC(i) = Ef([xC(XN,i); yC(XN,i); zC(XN,i); xC(XNN,i); yC(XNN,i); zC(XNN,i)]);
+
+%     xC(:,i) = P(1:N)';
+%     yC(:,i) = P([1:N]+N)';
+%     zC(:,i) = P([1:N]+2*N)';
+%     fC(i) = Ef([xC(:,i); yC(:,i); zC(:,i)]);
 end
 
-XC = zeros(2, N, n);
+XC = zeros(3, N, n);
 XC(1,:,:) = reshape(xC, [1, N, n]);
 XC(2,:,:) = reshape(yC, [1, N, n]);
 XC(3,:,:) = reshape(zC, [1, N, n]);
