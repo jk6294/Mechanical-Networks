@@ -138,7 +138,7 @@ for j = 1:z
             p1 = patch(fI);
             isonormals(xx,yy,zz,F1,p1)
             fI2 = isosurface(xx, yy, zz, F2, 0);
-            p2 = patch(shrinkfaces(fI2,.6));
+            p2 = patch(fI2);
             isonormals(xx,yy,zz,F2,p2)
             C = fI.vertices';
             S = [W v0] * P1 * [C; ones(1, size(C,2))];

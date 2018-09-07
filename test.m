@@ -103,7 +103,7 @@ nPan1 = [];
 for i = 1:5; nPan1 = [nPan1, [1:6]+(i-1)*24+1]; end
 nPan2 = [];
 for i = 1:6; nPan2 = [nPan2, [1:8]+(i-1)*24]; end
-az = -160; el = 20;         % Views
+az = -160; el = 10;         % Views
 
 
 % Positions and Motions
@@ -213,7 +213,7 @@ fig = figure(4); clf;
 nPan1 = [];
 for i = 1:5; nPan1 = [nPan1, [1:7]+(i-1)*24+.5]; end
 nPan2 = [];
-for i = 1:6; nPan2 = [nPan2, [1:8]+(i-1)*24]; end
+for i = 1:6; nPan2 = [nPan2, [1:7]+(i-1)*24+.5]; end
 az = -175; el = 10;         % Views
 
 
@@ -232,7 +232,7 @@ Us(:,:,2) = [[-1 1 1];...
 UsSSS = zeros(2,4,2);
 UsSSS(:,:,1) = [[-1 -1 1 1];...
                [-1 1 1 -1]]/2;
-UsSSS(:,:,2) = [[.2 -1 1 -.2];...
+UsSSS(:,:,2) = [[.2 1 -1 -.2];...
                [-1 .5 .5 -1]]/2;
 % Initial guess for unspecified nodes
 x0 = [-.7 .7]';
@@ -247,22 +247,32 @@ visualize_conic(Xs, Us, [-1 1; -1 1]*2, [100 100], 0, 1, 0);
 axis(1.5*[-1 1 -1 1]);
 
 
-% b: Place unspecified nodes and construct motions
+% c: Place unspecified nodes and construct motions
 subplot(12,24,nPan1+8)
 [Xu1, fV] = construct_network(Xs, Us, x0, conn, 0);
 [Us1, Uu1, err] = construct_motion(Xs, Us, Xu1, conn, 1, 1);
 axis(1.5*[-1 1 -1 1]);
 
 
-% c: Construct states of self-stress
+% e: Construct states of self-stress
 subplot(12,24,nPan1+16);
-[XuSSS1, fV] = construct_network(XsSSS(:,[1 2 3]), UsSSS(:,[1 2 3],:), [-sqrt(2); 0], connSSS, 0);
-[XuSSS2, fV] = construct_network(XsSSS(:,[1 2 4]), UsSSS(:,[1 2 4],:), [-.5; 1.3], connSSS, 0);
-[XuSSS4, fV] = construct_network(XsSSS(:,[2 3 4]), UsSSS(:,[2 3 4],:), [sqrt(2); 0], connSSS, 0);
-[XuSSS3, fV] = construct_network(XsSSS(:,[1 3 4]), UsSSS(:,[1 3 4],:), [.5; 1.3], connSSS, 0);
+% subplot(2,2,1);
+% visualize_conic(XsSSS(:,[2 3 4]), UsSSS(:,[2 3 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
+[XuSSS1, fV] = construct_network(XsSSS(:,[2 3 4]), UsSSS(:,[2 3 4],:), [-1 -1]', connSSS, 1);
+% subplot(2,2,2);
+% visualize_conic(XsSSS(:,[1 3 4]), UsSSS(:,[1 3 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
+[XuSSS2, fV] = construct_network(XsSSS(:,[1 3 4]), UsSSS(:,[1 3 4],:), [-1 0]', connSSS, 1);
+% subplot(2,2,3);
+% visualize_conic(XsSSS(:,[1 2 4]), UsSSS(:,[1 2 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
+[XuSSS3, fV] = construct_network(XsSSS(:,[1 2 4]), UsSSS(:,[1 2 4],:), [1 0]', connSSS, 1);
+% subplot(2,2,4);
+% visualize_conic(XsSSS(:,[1 2 3]), UsSSS(:,[1 2 3],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
+[XuSSS4, fV] = construct_network(XsSSS(:,[1 2 3]), UsSSS(:,[1 2 3],:), [1 -1]', connSSS, 1);
 XuSSS = [XuSSS1 XuSSS2 XuSSS3 XuSSS4];
-connSSS = [1 1; 2 1; 3 1; 1 2; 2 2; 4 2; 1 3; 3 3; 4 3; 2 4; 3 4; 4 4];
-[Us1, Uu1, err] = construct_motion(XsSSS, UsSSS, XuSSS, connSSS, 1, 1);
+connSSS = [2 1; 3 1; 4 1; 1 2; 3 2; 4 2; 1 3; 2 3; 4 3; 1 4; 2 4; 3 4];
+[Us1, Uu1, err] = construct_motion(XsSSS, UsSSS, XuSSS, connSSS, 1, 0);
+axis(1.5*[-1 1 -1 1]);
+% [XM, fC] = sim_motion(XsSSS, XuSSS, connSSS, .1, 110, -[XsSSS XuSSS],1);
 
 
 % Positions and Motions
@@ -282,11 +292,24 @@ x0 = [-.7 -.5 .8;...
       1.2 -.4 -.75;...
       -.4 -1.5 -.3;...
       .2 .6 .6]'*.8;
+x0SSS = [-.7 -.5 .8;...
+         1.2 -.4 -.75;...
+         -.4 -1.5 -.3;...
+         .2 .6 .6;...
+         -.05 .58 -.85]'*.8;...
+         
 % Connectivity
-conn = [1 1; 2 1; 3 1; 4 1; 1 2; 2 2; 3 2; 4 2;...
-        1 3; 2 3; 3 3; 4 3; 1 4; 2 4; 3 4; 4 4];
+conn = [1 1; 2 1; 3 1; 4 1;...
+        1 2; 2 2; 3 2; 4 2;...
+        1 3; 2 3; 3 3; 4 3;...
+        1 4; 2 4; 3 4; 4 4];
+connSSS = [1 1; 2 1; 3 1; 4 1;...
+           1 2; 2 2; 3 2; 4 2;...
+           1 3; 2 3; 3 3; 4 3;...
+           1 4; 2 4; 3 4; 4 4;...
+           1 5; 2 5; 3 5; 4 5];
     
-% d: Visualize solution space
+% b: Visualize solution space
 subplot(12,24,nPan2+24*6)
 visualize_conic(Xs, Us, [-1 1; -1 1; -1 1]*1.8, [100 100 100], 0, 1, 0);
 axis(1.5*[-1 1 -1 1 -1 1]);
@@ -294,10 +317,23 @@ view(az, el);
 camlight(azC, elC); lighting gouraud; material([.4 1 0]);
 
 
-% e: Place unspecified nodes and construct motion
+% d: Place unspecified nodes and construct motion
 subplot(12,24,nPan2+24*6+8)
 [Xu1, fV] = construct_network(Xs, Us, x0, conn, 0);
 [Us1, Uu1, err] = construct_motion(Xs, Us, Xu1, conn, 1, 1);
+axis(1.5*[-1 1 -1 1 -1 1]);
+view(az, el);
+camlight(azC, elC); lighting gouraud; material([.4 1 0]);
+
+
+% f: Place unspecified nodes and construct motion
+subplot(12,24,nPan2+24*6+16)
+[Xu1, fV] = construct_network(Xs, Us, x0SSS, connSSS, 0);
+% Lengths
+LVal = sqrt((Xs(1,connSSS(:,1)) - Xu1(1,connSSS(:,2))).^2 +...
+            (Xs(2,connSSS(:,1)) - Xu1(2,connSSS(:,2))).^2 +...
+            (Xs(3,connSSS(:,1)) - Xu1(3,connSSS(:,2))).^2);
+[Us1, Uu1, err] = construct_motion(Xs, Us, Xu1, connSSS, .01, .01);
 axis(1.5*[-1 1 -1 1 -1 1]);
 view(az, el);
 camlight(azC, elC); lighting gouraud; material([.4 1 0]);
@@ -314,7 +350,7 @@ fig.PaperSize = [19.2 10.8];
 
 
 %% Figure 5b-d
-figure(5); clf;
+fig = figure(5); clf;
 % Subplot Panel Sizes
 nPan1 = [];
 for i = 1:6; nPan1 = [nPan1, [1:4]+(i-1)*24]; end
@@ -338,6 +374,7 @@ conn = [1 1; 2 1; 3 1; 4 1; 1 2; 2 2; 3 2; 4 2];
 subplot(12,24,nPan1)
 construct_network(Xs + [0;1.2], Us, x0 + [0;1.2], conn, 1);
 construct_network(Xs - [0;1.2], Us, x0 - [0;1.2], conn, 1);
+axis([-1.8 1.8 -2.8 2.8]);
 
 
 % b: Combined modules with motion
@@ -345,6 +382,7 @@ subplot(12,24,nPan1 + 4)
 [Xu, fV] = construct_network(Xs, Us, x0, conn, 0);
 [XsT, XuT, connT] = tesselate_network(Xs, Xu, conn, [2 2]', [1 2]');
 [Us, Uu, err] = construct_motion(XsT, zeros(0,0,0), XuT, connT, -2, -2);
+axis([-1.8 1.8 -1.8 3.8]);
 
 
 % c: Tesselation expanded
@@ -356,8 +394,8 @@ axis([-4 12 -2 10]);
 
 
 % d: Tesselation contracted
-subplot(12,24,[nPan1 nPan1+4]+16)
-[XMot2, fC] = sim_motion(XsT, XuT, connT, .1, 110, -[XsT XuT],0);
+subplot(12,24,[nPan1 nPan1+4]+16);
+[XMot2, fC] = sim_motion(XsT, XuT, connT, .1, 130, -[XsT XuT],0);
 construct_motion(XMot2(:,1:size(XsT,2),end), zeros(0,0,0), XMot2(:,[1:size(XuT,2)]+size(XsT,2),end), connT, .1, .1);
 axis([-4 12 -2 10]);
 
@@ -405,7 +443,7 @@ conn = [1 1; 2 1; 3 1; 4 1; 5 1;...
 [Usp, Uup, err] = construct_motion(Xs2, -Us2, Xu2, conn, 1, 1);
 
 axis([.9 19.1 -3 1.4 .5 3.5]);
-view(-10, 10);
+view(-8, 10);
 
 
 [XsT, XuT, connT] = tesselate_network([Xs1 Xs2-[1;0;0]], [Xu1 Xu2-[1;0;0]], [conn; conn+[size(Xs1,2), size(Xu1,2)]], [0 0 0]', [1 1 1]');
@@ -432,6 +470,80 @@ fig.PaperUnits = 'inches';
 fig.PaperPosition = [0 0 19.2 10.8];
 fig.PaperSize = [19.2 10.8];
 % print(['Figures\' fName], '-dpng','-r300');
+
+
+%% Cooperativity Design
+figure(6); clf;
+nPan1 = [];
+for i = 1:5; nPan1 = [nPan1, [1:4]+(i-1)*24]; end
+nPan2 = [];
+for i = 1:6; nPan2 = [nPan2, [1:24]+(i-1)*24]; end
+az = 30; el = 25;         % Views
+azC = 50; elC = 30;         % Camera Position
+
+xS1 = [-2 -2 -1 -1;...
+       -1  1  0  0;...
+        0  0 -1  1]/2;
+xF1 = xS1 - [ 0     0     0     0;...
+             -0.2   0.2   0     0;...
+              0     0     0.05 -0.05];
+        
+xS2 = [ 2  2  1  1;...
+       -1  1  0  0;...
+        0  0 -1  1]/2;
+xF2 = xS2 - [ 0     0     0     0;...
+             -0.2   0.2   0     0;...
+              0     0     0.05 -0.05];
+
+x01 = [-0.681  0.151  0.596;...
+       -0.818  0.145  0.010;...
+       -0.740  0.172 -0.515;...
+       -0.795 -0.152  0.300;...
+       -0.818 -0.146  0.051;...
+       -0.758 -0.169 -0.475]';
+% x01 = x01 + (rand(size(x01)) - .5)/10;
+% x01 = [-1.6  0.1  0.6;...
+%        -1.6 -0.1  0.6;...
+%        -1.5  0.3  0.6;...
+%        -1.5 -0.3  0.6;...
+%        -1.2  0.2 -0.5;...
+%        -1.2 -0.2 -0.5]';
+% x02 = [0.8 -0.2  0.9;...
+%        0.8  0.2  0.9;...
+%        1.8 -0.4  0.4;...
+%        1.8  0.4  0.4;...
+%        1.1 -0.3 -0.8;...
+%        1.1  0.3 -0.8]';
+x02 = [-x01(1,:); x01(2:3,:)];
+conn1 = [1 1; 2 1; 3 1; 4 1;...
+         1 2; 2 2; 3 2; 4 2;...
+         1 3; 2 3; 3 3; 4 3;...
+         1 4; 2 4; 3 4; 4 4;...
+         1 5; 2 5; 3 5; 4 5;...
+         1 6; 2 6; 3 6; 4 6];
+     
+xC = [-1 -1  1  1  0      ;...
+       0  0  0  0  sqrt(2);...
+      -1  1 -1  1  0]/2   ;
+x0C = [ 0        sqrt(2)  sqrt(2);...
+        0        sqrt(2) -sqrt(2);...
+        sqrt(2)  sqrt(2)  0.0    ;...
+       -sqrt(2)  sqrt(2)  0.0     ]'/4;
+uC = xC/2;
+connC = [1 1; 2 1; 3 1; 4 1; 5 1;...
+         1 2; 2 2; 3 2; 4 2; 5 2;...
+         1 3; 2 3; 3 3; 4 3; 5 3;...
+         1 4; 2 4; 3 4; 4 4; 5 4];
+
+     
+     
+% subplot(2,3,1); cla;
+visualize_conic_finite(xS1, xF1, [-1 2; -1 1; -1 1]*1, [100; 100; 100], 2, 1, 1);
+visualize_conic(xS1, xF1-xS1 - .4*[1 1 0 0; 0 0 0 0; 0 0 0 0], [-2 2; -1 1; -1 1]*1, [100; 100; 100], 0, 1, 1);
+view(az, el);
+
+
+
 
 
 %% Figure 6
@@ -466,12 +578,19 @@ xF2 = xS2 - [ 0     0     0     0;...
              -0.2   0.2   0     0;...
               0     0     0.05 -0.05];
 
-x01 = [-1.561 -0.876  0.415;...
-       -1.561  0.876  0.315;...
-       -1.390 -0.955  0.10;...
-       -1.390  0.955  0.20;...
-       -1.476 -0.700 -0.233;...
-       -1.476  0.700 -0.333]';
+x01 = [-0.700  0.151  0.565;...
+       -0.818  0.145  0.010;...
+       -0.740  0.172 -0.515;...
+       -0.795 -0.152  0.300;...
+       -0.818 -0.146  0.051;...
+       -0.758 -0.169 -0.475]';
+x01 = x01 + (rand(size(x01)) - .5)*.1;
+% x01 = [-1.561 -0.876  0.415;...
+%        -1.561  0.876  0.315;...
+%        -1.390 -0.955  0.10;...
+%        -1.390  0.955  0.20;...
+%        -1.476 -0.700 -0.233;...
+%        -1.476  0.700 -0.333]';
 % x01 = x01 + (rand(size(x01)) - .5)/10;
 % x01 = [-1.6  0.1  0.6;...
 %        -1.6 -0.1  0.6;...
@@ -545,19 +664,21 @@ LVal1 = sqrt((xS1(1,conn1(:,1)) - Xu1(1,conn1(:,2))).^2 +...
 LVal2 = sqrt((xS2(1,conn1(:,1)) - Xu2(1,conn1(:,2))).^2 +...
              (xS2(2,conn1(:,1)) - Xu2(2,conn1(:,2))).^2 +...
              (xS2(3,conn1(:,1)) - Xu2(3,conn1(:,2))).^2);
+drawnow;
          
          
 % Simulate
-kT = [ones(48,1); ones(23,1)];
-% [MSi, ESi] = sim_motion3D_congrad(xS2, Xu2(1:3,:), conn1, LVal2, 0.001, 1000, [1 2], xF2(:,[1 2]));
-% [MSSi, ESSi] = sim_motion3D_congrad(MSi(:,1:4,end), MSi(:,5:10,end), conn1, LVal1, 0.001, 20, [1], MSi(:,[1]));
-% D = zeros(size(xS1,2), size(xS1,2), length(ESi));
-% for i = 1:length(ESi)
-%     D(:,:,i) = squareform(pdist(MSi(:,1:4,i)'));
-% end
-% DS = squareform(pdist(xF1'));
-% DSS = squareform(pdist(MSSi(:,:,end)'));
-% plot(squeeze(sum(sum((D - DS).^2)))')
+kT = [ones(48,1); 0.1*ones(23,1)];
+[MSi, ESi] = sim_motion3D_congrad(xS2, Xu2(1:3,:), conn1, LVal2, 0.001, 1000, [1 2], xF2(:,[1 2]));
+[MSSi, ESSi] = sim_motion3D_congrad(MSi(:,1:4,end), MSi(:,5:10,end), conn1, LVal1, 0.001, 20, [1], MSi(:,[1]));
+D = zeros(size(xS1,2), size(xS1,2), length(ESi));
+for i = 1:length(ESi)
+    D(:,:,i) = squareform(pdist(MSi(:,1:4,i)'));
+end
+DS = squareform(pdist(xF1'));
+DSS = squareform(pdist(MSSi(:,:,end)'));
+plot(squeeze(sum(sum((D - DS).^2)))')
+
 [MK, EK] = sim_motion3D_congrad(XsT, XuT, connT, LVal, 0.001, 1000, [1 2], xF1(:,[1 2]), kT);
 [M, E] = sim_motion3D_congrad(XsT, XuT, connT, LVal, 0.001, 1000, [5 6], xF2(:,[1 2]), kT);
 XsT2 = M(:,1:size(XsT,2),end);

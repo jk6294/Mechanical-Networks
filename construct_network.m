@@ -74,7 +74,7 @@ if(pV == 1)
              [Xs(2,conn(:,1)); Xu(2,conn(:,2))],...
              'linewidth', lw, 'color', [0 0 0 ea]);
         plot(Xs(1,:), Xs(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_SN)
-        plot(Xu(1,:), Xu(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_UN(j,:));
+        plot(Xu(1,:), Xu(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_UN(1,:));
         set(gca,'visible',0);
         set(gcf,'color','w');
     elseif(d==3)
@@ -89,7 +89,7 @@ if(pV == 1)
              'linewidth', lw, 'color', [0 0 0 ea]);
         for i = 1:size(Xu,2)
             s = surf(xSp+Xu(1,i), ySp+Xu(2,i), zSp+Xu(3,i));
-            s.FaceColor = C_UN(j,:);
+            s.FaceColor = C_UN(1,:);
             s.EdgeColor = 'none';
         end
         for i = 1:size(Xs,2)
