@@ -480,30 +480,30 @@ nPan2 = [];
 for i = 1:6; nPan2 = [nPan2, [1:24]+(i-1)*24]; end
 az = 30; el = 25;         % Views
 azC = 50; elC = 30;         % Camera Position
-     
+
 xS1 = [-2 -2 -1 -1;...
        -1  1  0  0;...
         0  0 -1  1]/2;
-xF1 = xS1 - [ 0     0     0     0;...
+xF1 = xS1 + [ 0.1   0.1   0     0;...
              -0.2   0.2   0     0;...
-              0     0    -0.06  0.06];
-U = [-0.4  -0.4   0     0;...
-      0.2  -0.2   0     0;...
-      0     0     0.06 -0.06];
+              0     0    -0.05  0.05];
+U =  [-0.05  -0.05   0     0;...
+      -0.2   0.2   0     0;...
+       0     0    -0.2   0.2];
 % subplot(2,3,1); cla;
-visualize_conic_finite(xS1, xF1, [-2 -.5; -1 1; -1 1]*1, [100; 100; 100], 2, 1, 1);
-visualize_conic(xS1, U, [-2 -.5; -1 1; -1 1]*1, [100; 100; 100], 0, 1, 1);
+visualize_conic_finite(xS1, xF1, [-1.5 -.0; -1 1; -1 1]*1, [100; 100; 100], 2, 1, 1);
+visualize_conic(xS1, U, [-1.5 -.0; -1 1; -1 1]*1, [100; 100; 100], 0, 1, 1);
 view(az, el);
 
 
 %% Construct Test
 figure(6); clf; 
-x01 = [-0.879  0.175  0.657;...
-       -0.803 -0.222  0.172;...
-       -0.894 -0.100 -0.859;...
-       -0.833  0.201 -0.455;...
-       -0.561 -0.100 -0.273;...
-       -0.542  0.111  0.172]'; 
+x01 = [-0.485 -0.248  0.434;...
+       -0.652 -0.513  0.000;...
+       -0.576 -0.400 -0.313;...
+       -0.485  0.248  0.434;...
+       -0.652  0.513  0.000;...
+       -0.576  0.400 -0.313]'; 
 % x01 = [-1.232  0.390  0.576;...
 %        -1.232 -0.390  0.576;...
 %        -1.183  0.333  0.172;...
@@ -532,12 +532,17 @@ LVal1 = sqrt((xS1(1,conn1(:,1)) - Xu1(1,conn1(:,2))).^2 +...
              (xS1(2,conn1(:,1)) - Xu1(2,conn1(:,2))).^2 +...
              (xS1(3,conn1(:,1)) - Xu1(3,conn1(:,2))).^2);
 [MSi, ESi] = sim_motion3D_congrad(xS1, Xu1(1:3,:), conn1, LVal1, 0.001, 1001, [1 2], xF1(:,[1 2]));
+[MSi2, ESi2] = sim_motion3D_congrad(xS1, Xu1(1:3,:), conn1, LVal1, 0.001, 1001, [3 4], xF1(:,[3 4]));
 
 
 %% Video
 figure(7); clf;
+
 XMot = MSi;
 EA = ESi;
+XMot = MSi2;
+EA = ESi2;
+
 connA = conn1;
 XsA = xS1;
 XuA = Xu1;
@@ -566,7 +571,7 @@ for i = 1:10:size(XMot,3)
     set(gca, 'visible', 'off');
     axis([-2.0 2.2 -1.5 1.5 -1 1]);
 %     view(-5, 20);
-%     view(0, 90);
+    view(0, 90);
 %     view(0,0);
     
     subplot(6,1,5:6);
@@ -589,7 +594,7 @@ nPan1 = [];
 for i = 1:5; nPan1 = [nPan1, [1:4]+(i-1)*24]; end
 nPan2 = [];
 for i = 1:6; nPan2 = [nPan2, [1:24]+(i-1)*24]; end
-az = 30; el = 25;         % Views
+az = 30; el = 25;           % Views
 azC = 50; elC = 30;         % Camera Position
 
 % Test
@@ -601,19 +606,21 @@ subplot(2,3,1);
 visualize_conic_finite(x0, xF, [-2 2; -2 2], [100; 100], 8, 1, 1);
 
 
-xS1 = [-2 -2 -1 -1;...
-       -1  1  0  0;...
-        0  0 -1  1]/2;
-xF1 = xS1 - [ 0     0     0     0;...
-             -0.2   0.2   0     0;...
-              0     0    -0.06  0.06];
-        
-xS2 = [ 2  2  1  1;...
-       -1  1  0  0;...
-        0  0 -1  1]/2;
-xF2 = xS2 - [ 0     0     0     0;...
-             -0.2   0.2   0     0;...
-              0     0    -0.06  0.06];
+% xS1 = [-2 -2 -1 -1;...
+%        -1  1  0  0;...
+%         0  0 -1  1]/2;
+% xF1 = xS1 - [ 0     0     0     0;...
+%              -0.2   0.2   0     0;...
+%               0     0    -0.06  0.06];   
+% xS2 = [ 2  2  1  1;...
+%        -1  1  0  0;...
+%         0  0 -1  1]/2;
+% xF2 = xS2 - [ 0     0     0     0;...
+%              -0.2   0.2   0     0;...
+%               0     0    -0.06  0.06];
+xS2 = [-xS1(1,:); xS1(2:3,:)];
+xF2 = [-xF1(1,:); xF1(2:3,:)];
+x02 = [-x01(1,:); x01(2:3,:)];
 
           
 
@@ -634,7 +641,6 @@ xF2 = xS2 - [ 0     0     0     0;...
 %        -1.476 -0.700 -0.233;...
 %        -1.476  0.700 -0.333]';
 
-x02 = [-x01(1,:); x01(2:3,:)];
 conn1 = [1 1; 2 1; 3 1; 4 1;...
          1 2; 2 2; 3 2; 4 2;...
          1 3; 2 3; 3 3; 4 3;...
@@ -710,9 +716,9 @@ DSS = squareform(pdist(MSSi(:,:,end)'));
 plot(squeeze(sum(sum((D - DS).^2)))');
 
 % Simulate Original ==> Second Deformation
-[MK, EK] = sim_motion3D_congrad(XsT, XuT, connT, LVal, 0.001, 1000, [1 2], xF1(:,[1 2]), kT);
+[MK, EK] = sim_motion3D_congrad(XsT, XuT, connT, LVal, 0.0004, 2500, [1 2], xF1(:,[1 2]), kT);
 % Simulate Original ==> First Deformation
-[M, E] = sim_motion3D_congrad(XsT, XuT, connT, LVal, 0.001, 1000, [5 6], xF2(:,[1 2]), kT);
+[M, E] = sim_motion3D_congrad(XsT, XuT, connT, LVal, 0.0004, 2500, [5 6], xF2(:,[1 2]), kT);
 XsT2 = M(:,1:size(XsT,2),end);
 XuT2 = M(:,[1:size(XuT,2)]+size(XsT,2),end);
 % Simulate First Deformation ==> Stablize
@@ -720,13 +726,18 @@ XuT2 = M(:,[1:size(XuT,2)]+size(XsT,2),end);
 XsT3 = MS(:,1:size(XsT,2),end);
 XuT3 = MS(:,[1:size(XuT,2)]+size(XsT,2),end);
 % Simulate First Deformation ==> Second Deformation
-[MS2, ES2] = sim_motion3D_congrad(XsT3, XuT3, connT, LVal, 0.001, 1000, [1 2], xF1(:,[1 2]), kT);
+[MS2, ES2] = sim_motion3D_congrad(XsT3, XuT3, connT, LVal, 0.0004, 2500, [1 2], xF1(:,[1 2]), kT);
 
 figure(1); clf;
 subplot(3,1,1);
 plot(E);
 subplot(3,1,2);
-plot(ES);
+% plot(ES);
+MA = zeros(3,25,1); MA(:,:,1:size(M,3)) = M; MA(:,:,[1:size(MS2,3)]+size(M,3)) = MS2;
+plot(squeeze(sum(diff(MA(:,[1 2],:),[],2).^2))); 
+hold on; 
+plot(squeeze(sum(diff(MA(:,[5 6],:),[],2).^2))); 
+hold off;
 subplot(3,1,3);
 plot(EK);
 hold on;
@@ -762,7 +773,7 @@ nu = size(XuA,2);
 
 kTC = num2cell(kT*5);
 
-for i = 1:20:size(XMot,3)
+for i = 1:50:size(XMot,3)
     subplot(6,1,1:4);
     cla;
     hold on;
@@ -779,32 +790,32 @@ for i = 1:20:size(XMot,3)
 %     plot3(XsT(1,:)+Us(1,:), Xs(2,:)+Us(2,:), Xs(3,:)+Us(3,:), 'ro', 'markersize', 14, 'linewidth', 2);
     hold off;
     set(gca, 'visible', 'off');
-    axis([-2.0 2.2 -1.5 1.5 -1 1]);
+    axis([-1.5 1.5 -1 1 -1 1]);
 %     axis([-2 1 -1 1 -1 1]);
 %     view(-5, 20);
-%     view(0, 90);
+    view(0, 90);
 %     view(0,0);
     
     subplot(6,1,5:6);
     plot(EA(1:i), 'linewidth', 4);
-    hold on;
-    plot(squeeze(sqrt(sum((XMot(:,3,:) - XMot(:,4,:)).^2)))/10000)
-    plot(EK);
-    hold off;
+%     hold on;
+%     plot(squeeze(sqrt(sum((XMot(:,3,:) - XMot(:,4,:)).^2)))/10000)
+%     plot(EK);
+%     hold off;
     axis([0, length(EA) 0 max([EA EK])]);
     xlabel('t'); ylabel('Energy');
     set(gca, 'xtick', [], 'ytick', [], 'fontsize', 24);
     drawnow;
     
-%     frame = getframe(h);
-%     im = frame2im(frame);
-%     [imind,cm] = rgb2ind(im,256);
-%     
-%     if i == 1
-%         imwrite(imind,cm,filename,'gif','Loopcount',inf,'DelayTime',.03);
-%     else
-%         imwrite(imind,cm,filename,'gif','WriteMode','append','DelayTime',.03);
-%     end
+    frame = getframe(h);
+    im = frame2im(frame);
+    [imind,cm] = rgb2ind(im,256);
+    
+    if i == 1
+        imwrite(imind,cm,filename,'gif','Loopcount',inf,'DelayTime',.03);
+    else
+        imwrite(imind,cm,filename,'gif','WriteMode','append','DelayTime',.03);
+    end
     
 end
 
