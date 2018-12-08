@@ -14,12 +14,10 @@ function [Xu fV] = construct_network(Xs, Us, Xui, conn, pV)
 
 % Visualization Parameters
 C_SN = [255 100 100]/255;       % Color of Specified Node   
-C_UN = [100 100 255;...
-        100 200 255]/255;       % Color of Unspecified Node
+C_UN = [100 100 255]/255;       % Color of Unspecified Node
 
 % Initial values
 d = size(Xs,1);
-n = size(Xs,2);
 k = size(Xui,2);
 z = size(Us, 3);
 
@@ -64,8 +62,8 @@ end
 % Plot
 if(pV == 1)
     % Plot Parameters
-    ms = 8;         % Marker Size
-    lw = 2;         % Line Width
+    ms = 4;         % Marker Size
+    lw = 1;         % Line Width
     ea = .5;        % Edge Transparency
 
     hold on
@@ -74,7 +72,7 @@ if(pV == 1)
              [Xs(2,conn(:,1)); Xu(2,conn(:,2))],...
              'linewidth', lw, 'color', [0 0 0 ea]);
         plot(Xs(1,:), Xs(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_SN)
-        plot(Xu(1,:), Xu(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_UN(1,:));
+        plot(Xu(1,:), Xu(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_UN);
         set(gca,'visible',0);
         set(gcf,'color','w');
     elseif(d==3)
@@ -89,7 +87,7 @@ if(pV == 1)
              'linewidth', lw, 'color', [0 0 0 ea]);
         for i = 1:size(Xu,2)
             s = surf(xSp+Xu(1,i), ySp+Xu(2,i), zSp+Xu(3,i));
-            s.FaceColor = C_UN(1,:);
+            s.FaceColor = C_UN;
             s.EdgeColor = 'none';
         end
         for i = 1:size(Xs,2)
@@ -97,7 +95,6 @@ if(pV == 1)
             s.FaceColor = C_SN;
             s.EdgeColor = 'none';
         end
-        hold off;
         set(gca,'XTickLabel',[],'YTickLabel',[],'ZTickLabel',[],...
                 'XTick',[],'YTick',[],'ZTick',[],'box','on','boxstyle','back');
     end

@@ -130,11 +130,14 @@ XC(2,:,:) = reshape(yC, [1, N, n]);
 
 %% Plot
 % Plot Parameters
-ms = 10;        % Marker Size
-lw = 2;         % Line Width
+ms = 4;         % Marker Size
+lw = 1;         % Line Width
 ea = .5;        % Edge Transparency
+C_SN = [255 100 100]/255;       % Color of Specified Node
+C_UN = [100 100 255]/255;       % Color of Unspecified Node
+
 if(pV ~= 0)
-    hold on
+    hold on;
     line([XC(1,conn(:,1),1); XC(1,conn(:,2)+ns,1)],...
          [XC(2,conn(:,1),1); XC(2,conn(:,2)+ns,1)],...
          'linewidth', lw, 'color', [0 0 0 ea]);
@@ -143,13 +146,15 @@ if(pV ~= 0)
              [XC(2,connS(:,1),1); XC(2,connS(:,2),1)],...
              'linewidth', lw, 'color', [0 0 0 ea]);
     end
-    plot(XC(1,1:ns,1), XC(2,1:ns,1), 'ro', 'linewidth', ms)
-    plot(XC(1,(1:nu)+ns,1), XC(2,(1:nu)+ns,1), 'bo', 'linewidth', ms);
     for i = 1:n
-        plot(XC(1,1:ns,i), XC(2,1:ns,i), 'r.', 'linewidth', ms)
-        plot(XC(1,(1:nu)+ns,i), XC(2,(1:nu)+ns,i), 'b.', 'linewidth', ms);
+        plot(XC(1,1:ns,i), XC(2,1:ns,i), 'r.', 'linewidth', ms, 'markersize', ms, 'color', C_SN)
+        plot(XC(1,(1:nu)+ns,i), XC(2,(1:nu)+ns,i), 'b.', 'linewidth', ms, 'markersize', ms, 'color', C_UN);
     end
+    plot(XC(1,1:ns,1), XC(2,1:ns,1), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_SN)
+    plot(XC(1,(1:nu)+ns,1), XC(2,(1:nu)+ns,1), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_UN);
     hold off;
+    set(gca,'visible',0);
+    set(gcf,'color','w');
 end
 
 end

@@ -12,9 +12,12 @@ function [Xu, fV] = construct_network_finite(X0, XF, Xui, conn, pV)
 % Xu: 2dxk matrix of unspecified node positions
 % fV: 1xk vector of absolute value of conic at Xu (ideally 0)
 
+% Visualization Parameters
+C_SN = [255 100 100]/255;       % Color of Specified Node
+C_UN = [100 100 255]/255;...    % Color of Unspecified Node
+    
 % Initial values
 d = size(X0,1);
-n = size(X0,2);
 k = size(Xui,2);
 z = size(XF, 3);
 
@@ -42,14 +45,14 @@ for i = 1:k
     m = size(Q,1)-1;
     % Convert initial condition to coordinate representation
     if(z == 1)
-        cP1 = double([W(1:d,:) v(1:d)]\Xui(:,i));
+        cP1 = double(W(1:d,:)\(Xui(:,i)-v(1:d)));
         x0 = cP1(1:m,:)';
     else
         x0 = Xui(:,i)';
     end
     [XP, fVal] = fminsearch(fF, x0, options);
     if(z > 1)
-        Xu(:,i) = XP';
+        Xu(1:d,i) = XP';
     else
         Xu(:,i) = [W(1:(2*d),:) v(1:(2*d))] * [XP 1]';
     end
@@ -59,8 +62,8 @@ end
 % Plot
 if(pV == 1)
     % Plot Parameters
-    ms = 10;        % Marker Size
-    lw = 2;         % Line Width
+    ms = 4;         % Marker Size
+    lw = 1;         % Line Width
     ea = .5;        % Edge Transparency
 
     hold on
@@ -68,16 +71,33 @@ if(pV == 1)
         line([X0(1,conn(:,1)); Xu(1,conn(:,2))],...
              [X0(2,conn(:,1)); Xu(2,conn(:,2))],...
              'linewidth', lw, 'color', [0 0 0 ea]);
-        plot(X0(1,:), X0(2,:), 'ro', 'linewidth', ms)
-        plot(Xu(1,:), Xu(2,:), 'bo', 'linewidth', ms);
+        plot(X0(1,:), X0(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_SN)
+        plot(Xu(1,:), Xu(2,:), 'o', 'linewidth', ms, 'markersize', ms, 'color', C_UN);
+        set(gca,'visible',0);
+        set(gcf,'color','w');
     elseif(d==3)
+        % Spherical point
+        [xSp, ySp, zSp] = sphere(20);
+        xSp = xSp/10; 
+        ySp = ySp/10; 
+        zSp = zSp/10; 
+        % Network
         line([X0(1,conn(:,1)); Xu(1,conn(:,2))],...
              [X0(2,conn(:,1)); Xu(2,conn(:,2))],...
              [X0(3,conn(:,1)); Xu(3,conn(:,2))],...
              'linewidth', lw, 'color', [0 0 0 ea]);
-        plot3(X0(1,:), X0(2,:), X0(3,:), 'ro', 'linewidth', ms)
-        plot3(Xu(1,:), Xu(2,:), Xu(3,:), 'bo', 'linewidth', ms);
-        view(20, 10);
+        for i = 1:size(X0,2)
+            s = surf(xSp+X0(1,i), ySp+X0(2,i), zSp+X0(3,i));
+            s.FaceColor = C_SN;
+            s.EdgeColor = 'none';
+        end
+        for i = 1:size(Xu,2)
+            s = surf(xSp+Xu(1,i), ySp+Xu(2,i), zSp+Xu(3,i));
+            s.FaceColor = C_UN;
+            s.EdgeColor = 'none';
+        end
+        set(gca,'XTickLabel',[],'YTickLabel',[],'ZTickLabel',[],...
+                'XTick',[],'YTick',[],'ZTick',[],'box','on','boxstyle','back');
     end
     hold off;
 end

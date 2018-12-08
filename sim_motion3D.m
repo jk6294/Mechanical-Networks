@@ -1,4 +1,4 @@
-function [XC, fC] = sim_motion3D(Xs, Xu, conn, delS, n, X0, pV, connS)
+function [XC, fC] = sim_motion3D(Xs, Xu, conn, delS, n, X0, pV, connS, connU)
 % Function for simulating the motion of frames
 % Inputs
 %       Xs      3 X ns matrix of coordinates for specified nodes
@@ -14,6 +14,9 @@ function [XC, fC] = sim_motion3D(Xs, Xu, conn, delS, n, X0, pV, connS)
 if ~exist('connS', 'var')
     connS = [];
 end
+if ~exist('connU', 'var')
+    connU = [];
+end
 
 
 %% Lengths
@@ -24,11 +27,17 @@ N = ns + nu;
 LVal = [sqrt((Xs(1,conn(:,1)) - Xu(1,conn(:,2))).^2 +...
              (Xs(2,conn(:,1)) - Xu(2,conn(:,2))).^2 +...
              (Xs(3,conn(:,1)) - Xu(3,conn(:,2))).^2)];
-         
+% Specified to Specified
 if(size(connS,1) > 0)
     LVal = [LVal sqrt((Xs(1,connS(:,1)) - Xs(1,connS(:,2))).^2 +...
                       (Xs(2,connS(:,1)) - Xs(2,connS(:,2))).^2 +...
                       (Xs(3,connS(:,1)) - Xs(3,connS(:,2))).^2)];
+end
+% Specified to Unspecified
+if(size(connU,1) > 0)
+    LVal = [LVal sqrt((Xu(1,connU(:,1)) - Xu(1,connU(:,2))).^2 +...
+                      (Xu(2,connU(:,1)) - Xu(2,connU(:,2))).^2 +...
+                      (Xu(3,connU(:,1)) - Xu(3,connU(:,2))).^2)];
 end
         
         
@@ -44,6 +53,9 @@ for i = 1:size(conn,1)
 end
 for i = 1:size(connS,1)
     g = [g; (XS(connS(i,1)) - XS(connS(i,2)))^2 + (YS(connS(i,1)) - YS(connS(i,2)))^2 + (ZS(connS(i,1)) - ZS(connS(i,2)))^2];
+end
+for i = 1:size(connU,1)
+    g = [g; (XS(connU(i,1)+ns) - XS(connU(i,2)+ns))^2 + (YS(connU(i,1)+ns) - YS(connU(i,2)+ns))^2 + (ZS(connU(i,1)+ns) - ZS(connU(i,2)+ns))^2];
 end
 disp('1');
 J = jacobian(g, [XS; YS; ZS])/2;

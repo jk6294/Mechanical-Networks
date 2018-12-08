@@ -15,17 +15,17 @@ function [Q, W, v0, err] = construct_conic_finite(X0, XF)
 % Initialize Values and Matrices
 d = size(X0,1);                          % Dimensions
 N = size(X0,2);                          % Nodes
-At = sym([2*X0', -2*XF', -ones(N,1)]);   % \tilde{A} from main text
+M = sym([2*X0', -2*XF', -ones(N,1)]);    % M from main text
 O = [eye(d)   zeros(d) zeros(d,1);...    % O from supplement 
      zeros(d)  -eye(d) zeros(d,1);...
      zeros(1,2*d+1)];
 b = sum(X0.^2 - XF.^2)';
-p = [zeros([1, 2*d]), 1];               % Inidicator vector
+p = [zeros([1, 2*d]), 1];                % Inidicator vector
 
 % Find homogeneous and non-homogenous solutions to linear problem
-W = null(At);           % Nullspace gives homogeneous solutions
-v0 = pinv(At)*b;        % Particular Solution
-err = norm(At*v0 - b);  % error
+W = null(M);           % Nullspace gives homogeneous solutions
+v0 = pinv(M)*b;        % Particular Solution
+err = norm(M*v0 - b);  % error
 
 % Construct Conic Matrix by Applying Nonlinear Constraint
 AP = W'*O*W;

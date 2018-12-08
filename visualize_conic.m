@@ -12,11 +12,11 @@ function [] = visualize_conic(Xs, Us, R, nC, nP, vS, vU)
 % vU: Scalar: scales the unspecified arrows by this amount
 
 % Visualization Parameters
-LW_SA = 5;                      % Line Width of Specified Arrow
-LW_UA = 1;                      % Line Width of Unspecified Arrows
-LW_SS = 2;                      % Line Width of Solution Space
-MS_SN = 8;                      % Marker Size of Specified Node
-MS_UN = 3;                      % Marker Size of Unspecified Node
+LW_SA = 2;                      % Line Width of Specified Arrow
+LW_UA = .7;                     % Line Width of Unspecified Arrows
+LW_SS = 1;                      % Line Width of Solution Space
+MS_SN = 4;                      % Marker Size of Specified Node
+MS_UN = 2;                      % Marker Size of Unspecified Node
 C_SN = [255 100 100]/255;       % Color of Specified Node
 C_SA = [76 187 23;...           % Color of Specified Arrow
         50 255 50]/255;         

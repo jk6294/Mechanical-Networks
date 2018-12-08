@@ -12,11 +12,11 @@ function [] = visualize_conic_finite(X0, XF, R, nC, nP, vS, vU)
 % vU: Scalar: scales the unspecified arrows by this amount
 
 % Visualization Parameters
-LW_SA = 5;                      % Line Width of Specified Arrow
-LW_UA = 1;                      % Line Width of Unspecified Arrows
-LW_SS = 2;                      % Line Width of Solution Space
-MS_SN = 8;                      % Marker Size of Specified Node
-MS_UN = 3;                      % Marker Size of Unspecified Node
+LW_SA = 2;                      % Line Width of Specified Arrow
+LW_UA = .7;                     % Line Width of Unspecified Arrows
+LW_SS = 1;                      % Line Width of Solution Space
+MS_SN = 4;                      % Marker Size of Specified Node
+MS_UN = 2;                      % Marker Size of Unspecified Node
 C_SN = [255 100 100]/255;       % Color of Specified Node
 C_SA = [76 187 23;...           % Color of Specified Arrow
         50 255 50]/255;         
@@ -85,8 +85,8 @@ for j = 1:z
                  2*Q2(3,1)*xx + 2*Q2(3,2)*yy;
             % Generate contour along conic solution at 0
             hold on;
-            C = contour(xx,yy,F1,[0 0], 'linewidth', LW_SS, 'color', C_SS(j,:));
-            contour(xx,yy,F2,[0 0], '--', 'linewidth', LW_SS, 'color', C_SS(j,:));
+            C = contour(xx,yy,F1,[0 0], 'linewidth', LW_SS, 'color', C_SS(1,:));
+            contour(xx,yy,F2,[0 0], 'linewidth', LW_SS, 'color', C_SS(2,:));
             Cu = C(:,floor(linspace(ceil(size(C,2)/nP),size(C,2)-1,nP)));
             % Generate displacements along curve
             S = [W v0] * P1 * [Cu; ones(1, size(Cu,2))];
@@ -98,12 +98,12 @@ for j = 1:z
         quiver(Cu(1,pInds), Cu(2,pInds), Uu(1,pInds)*vU, Uu(2,pInds)*vU, 0, 'linewidth', LW_UA, 'color', C_SS(j,:));
         quiver(X0(1,:), X0(2,:), Us(1,:,j)*vS, Us(2,:,j)*vS, 0, 'linewidth', LW_SA, 'color', C_SA(j,:));
         quiver(X0(1,:), X0(2,:), Us(1,:,j)*vS, Us(2,:,j)*vS, 0, 'linewidth', LW_SA/3, 'color', [1 1 1]);
-        plot(Cu(1,pInds), Cu(2,pInds), 'o', 'markersize', MS_UN, 'linewidth', MS_UN, 'color', C_SS(j,:));
+        plot(Cu(1,pInds), Cu(2,pInds), 'o', 'markersize', MS_UN, 'linewidth', MS_UN, 'color', C_SS(1,:));
         plot(Cup(1,pInds), Cup(2,pInds), 'o', 'markersize', MS_UN, 'linewidth', MS_UN, 'color', [1 1 1]);
-        plot(Cup(1,pInds), Cup(2,pInds), 'o', 'markersize', MS_UN+2, 'linewidth', MS_UN-2, 'color', C_SS(j,:));
+        plot(Cup(1,pInds), Cup(2,pInds), 'o', 'markersize', MS_UN+1, 'linewidth', MS_UN-1, 'color', C_SS(2,:));
         plot(X0(1,:), X0(2,:), 'o', 'linewidth', MS_SN, 'markersize', MS_SN, 'color', C_SN);
         plot(XF(1,:), XF(2,:), 'o', 'linewidth', MS_SN, 'markersize', MS_SN, 'color', [1 1 1]);
-        plot(XF(1,:), XF(2,:), 'o', 'linewidth', MS_SN-6, 'markersize', MS_SN+6, 'color', C_SN);
+        plot(XF(1,:), XF(2,:), 'o', 'linewidth', MS_SN-3, 'markersize', MS_SN+3, 'color', C_SN);
         hold off;
         set(gca,'visible',0);
         set(gcf,'color','w');
@@ -148,10 +148,10 @@ for j = 1:z
             Cu = C(:,vInds(vSamp));
             Cup = Cup(:,vInds(vSamp));
             Uu = Cup - Cu;
-            p1.FaceColor = C_SS(j,:);
+            p1.FaceColor = C_SS(1,:);
             p1.FaceAlpha = .5;
             p1.EdgeColor = 'none';
-            p2.FaceColor = C_SS(j,:);
+            p2.FaceColor = C_SS(2,:);
             p2.FaceAlpha = .5;
             p2.EdgeColor = 'none';
         elseif(nDOF==2)
@@ -212,6 +212,7 @@ for j = 1:z
             'filled', 'color', C_SA(j,:), 'linewidth', LW_SA);
         quiver3(X0(1,:), X0(2,:), X0(3,:), Us(1,:,j)*vS, Us(2,:,j)*vS, Us(3,:,j)*vS, 0,...
             'filled', 'color', [1 1 1], 'linewidth', LW_SA/3);
+%         plot3(XF(1,:), XF(2,:), XF(3,:), 'o', 'markersize', MS_SN+3, 'linewidth', MS_SN-3, 'color', C_SN);
         for i = 1:size(Cu,2)
             s = surf(xSp*MS_UN/MS_SN+Cu(1,i), ySp*MS_UN/MS_SN+Cu(2,i), zSp*MS_UN/MS_SN+Cu(3,i));
             s.FaceColor = C_SS(j,:);

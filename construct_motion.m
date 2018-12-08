@@ -1,4 +1,4 @@
-function [Uss, Uus, err] = construct_motion(Xs, Us, Xu, conn, vS, vU, connS)
+function [Uss, Uus, err] = construct_motion(Xs, Us, Xu, conn, vS, vU, connS, connU)
 % Function to generate instantaneous motions
 %
 % Inputs
@@ -18,6 +18,9 @@ function [Uss, Uus, err] = construct_motion(Xs, Us, Xu, conn, vS, vU, connS)
 if ~exist('connS', 'var')
     connS = [];
 end
+if ~exist('connU', 'var')
+    connU = [];
+end
 
 % Initial Values
 d = size(Xs,1);
@@ -26,6 +29,7 @@ nu = size(Xu,2);
 L = ns + nu;
 s1 = size(conn,1);
 s2 = size(connS,1);
+s3 = size(connU,1);
 X = [Xs Xu];
 z = size(Us,3);
 
@@ -37,13 +41,17 @@ for i = 1:s1
     R(i,conn(i,2) + ns + dInd) = (Xu(:,conn(i,2)) - Xs(:,conn(i,1)))';
 end
 for i = 1:s2
-    R(s1+i,connS(i,1) + dInd) = (Xs(:,connS(i,1)) - Xu(:,connS(i,2)))';
-    R(s1+i,connS(i,2) + dInd) = (Xs(:,connS(i,2)) - Xu(:,connS(i,1)))';
+    R(s1+i,connS(i,1) + dInd) = (Xs(:,connS(i,1)) - Xs(:,connS(i,2)))';
+    R(s1+i,connS(i,2) + dInd) = (Xs(:,connS(i,2)) - Xs(:,connS(i,1)))';
+end
+for i = 1:s3
+    R(s1+s2+i,connU(i,1) + ns + dInd) = (Xu(:,connU(i,1)) - Xu(:,connU(i,2)))';
+    R(s1+s2+i,connU(i,2) + ns + dInd) = (Xu(:,connU(i,2)) - Xu(:,connU(i,1)))';
 end
 
 % Find motions
 D = null(R);
-nSS = size(D,2) - (d*(L) - s1 - s2);
+nSS = size(D,2) - (d*(L) - s1 - s2 - s3);
 if(d==2)
     % Rotation function
     fRot = @(xP, yP) [sqrt(xP.^2 + yP.^2); sqrt(xP.^2 + yP.^2)] .*...
@@ -100,8 +108,8 @@ end
 
 % Visualize
 % Plot Parameters
-ms = 8;                         % Marker Size
-lw = 2;                         % Line Width
+ms = 4;                         % Marker Size
+lw = 1;                         % Line Width
 ea = .5;                        % Edge Transparency
 C_SN = [255 100 100]/255;       % Color of Specified Node
 C_SA = [76 187 23;...           % Color of Specified Arrow
@@ -157,6 +165,12 @@ if(vS~=0 && vU ~= 0)
             line([Xs(1,connS(:,1)); Xs(1,connS(:,2))],...
                  [Xs(2,connS(:,1)); Xs(2,connS(:,2))],...
                  [Xs(3,connS(:,1)); Xs(3,connS(:,2))],...
+                 'linewidth', lw, 'color', [0 0 0 ea]);
+        end
+        if(s3 > 0)
+            line([Xu(1,connU(:,1)); Xu(1,connU(:,2))],...
+                 [Xu(2,connU(:,1)); Xu(2,connU(:,2))],...
+                 [Xu(3,connU(:,1)); Xu(3,connU(:,2))],...
                  'linewidth', lw, 'color', [0 0 0 ea]);
         end
         set(gca,'XTickLabel',[],'YTickLabel',[],'ZTickLabel',[],...
