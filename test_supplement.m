@@ -70,7 +70,7 @@ UsSSS(:,:,1) = [[-1 -1 1 1];...
 UsSSS(:,:,2) = [[.2 1 -1 -.2];...
                [-1 .5 .5 -1]]/2;
 % Module Connectivity
-conn = [1 1; 2 1; 3 1];
+conn = [1 1; 2 1; 3 1] + [0 3];
 % Initial Position Conditions
 Xu0 = [-1 -1 1 1;...
        -1 0 0 -1];
@@ -79,26 +79,26 @@ Xu0 = [-1 -1 1 1;...
 fig = figure(2); clf;
 subplot(4,3,[1,4]);
 visualize_conic(XsSSS(:,[2 3 4]), UsSSS(:,[2 3 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
-[XuSSS1, fV] = construct_network(XsSSS(:,[2 3 4]), UsSSS(:,[2 3 4],:), Xu0(:,1), conn, 1);
+[XuSSS1, fV] = construct_network(XsSSS(:,[2 3 4]), UsSSS(:,[2 3 4],:), Xu0(:,1), conn, 1, 0);
 axis(2*[-1 1 -1 1]);
 subplot(4,3,[1,4]+1);
 visualize_conic(XsSSS(:,[1 3 4]), UsSSS(:,[1 3 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
-[XuSSS2, fV] = construct_network(XsSSS(:,[1 3 4]), UsSSS(:,[1 3 4],:), Xu0(:,2), conn, 1);
+[XuSSS2, fV] = construct_network(XsSSS(:,[1 3 4]), UsSSS(:,[1 3 4],:), Xu0(:,2), conn, 1, 0);
 axis(2*[-1 1 -1 1]);
 subplot(4,3,[1,4]+6);
 visualize_conic(XsSSS(:,[1 2 4]), UsSSS(:,[1 2 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
-[XuSSS3, fV] = construct_network(XsSSS(:,[1 2 4]), UsSSS(:,[1 2 4],:), Xu0(:,3), conn, 1);
+[XuSSS3, fV] = construct_network(XsSSS(:,[1 2 4]), UsSSS(:,[1 2 4],:), Xu0(:,3), conn, 1, 0);
 axis(2*[-1 1 -1 1]);
 subplot(4,3,[1,4]+7);
 visualize_conic(XsSSS(:,[1 2 3]), UsSSS(:,[1 2 3],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
-[XuSSS4, fV] = construct_network(XsSSS(:,[1 2 3]), UsSSS(:,[1 2 3],:), Xu0(:,4), conn, 1);
+[XuSSS4, fV] = construct_network(XsSSS(:,[1 2 3]), UsSSS(:,[1 2 3],:), Xu0(:,4), conn, 1, 0);
 axis(2*[-1 1 -1 1]);
 XuSSS = [XuSSS1 XuSSS2 XuSSS3 XuSSS4];
-connSSS = [2 1; 3 1; 4 1; 1 2; 3 2; 4 2; 1 3; 2 3; 4 3; 1 4; 2 4; 3 4];
+connSSS = [2 1; 3 1; 4 1; 1 2; 3 2; 4 2; 1 3; 2 3; 4 3; 1 4; 2 4; 3 4] + [0 4];
 subplot(4,3,[1,4]+5)
-visualize_network(XsSSS, XuSSS, connSSS);
+visualize_network(XsSSS, XuSSS(1:2,:), connSSS);
 axis(2*[-1 1 -1 1]);
-[S, Xd] = rigidity(XsSSS, XuSSS, connSSS);
+[S, Xd] = rigidity(XsSSS, XuSSS(1:2,:), connSSS);
 
 
 % Size and Save Figure
@@ -122,7 +122,7 @@ UsSSS2(:,:,1) = [[-1 -1 1 1];...
 UsSSS2(:,:,2) = [[.2 -1 1 -.2];...
                  [-1 .5 .5 -1]]/2;
 % Module Connectivity
-conn = [1 1; 2 1; 3 1];
+conn = [1 1; 2 1; 3 1] + [0 3];
 % Initial Position Conditions
 Xu0 = [sqrt(2) 0 0 -sqrt(2);...
        0       1 1  0];
@@ -131,35 +131,35 @@ Xu0 = [sqrt(2) 0 0 -sqrt(2);...
 fig = figure(3); clf;
 subplot(4,3,[1,4]);
 visualize_conic(XsSSS(:,[2 3 4]), UsSSS2(:,[2 3 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
-[XuSSS1, fV] = construct_network(XsSSS(:,[2 3 4]), UsSSS2(:,[2 3 4],:), Xu0(:,1), conn, 1);
+[XuSSS1, fV] = construct_network(XsSSS(:,[2 3 4]), UsSSS2(:,[2 3 4],:), Xu0(:,1), conn, 1, 0);
 axis(2*[-1 1 -1 1]);
 subplot(4,3,[1,4]+1);
 visualize_conic(XsSSS(:,[1 3 4]), UsSSS2(:,[1 3 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
-[XuSSS2, fV] = construct_network(XsSSS(:,[1 3 4]), UsSSS2(:,[1 3 4],:), Xu0(:,2), conn, 1);
+[XuSSS2, fV] = construct_network(XsSSS(:,[1 3 4]), UsSSS2(:,[1 3 4],:), Xu0(:,2), conn, 1, 0);
 axis(2*[-1 1 -1 1]);
 subplot(4,3,[1,4]+6);
 visualize_conic(XsSSS(:,[1 2 4]), UsSSS2(:,[1 2 4],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
-[XuSSS3, fV] = construct_network(XsSSS(:,[1 2 4]), UsSSS2(:,[1 2 4],:), Xu0(:,3), conn, 1);
+[XuSSS3, fV] = construct_network(XsSSS(:,[1 2 4]), UsSSS2(:,[1 2 4],:), Xu0(:,3), conn, 1, 0);
 axis(2*[-1 1 -1 1]);
 subplot(4,3,[1,4]+7);
 visualize_conic(XsSSS(:,[1 2 3]), UsSSS2(:,[1 2 3],:), [-1 1; -1 1]*2, [100 100], 0, 1, 1);
-[XuSSS4, fV] = construct_network(XsSSS(:,[1 2 3]), UsSSS2(:,[1 2 3],:), Xu0(:,4), conn, 1);
+[XuSSS4, fV] = construct_network(XsSSS(:,[1 2 3]), UsSSS2(:,[1 2 3],:), Xu0(:,4), conn, 1, 0);
 axis(2*[-1 1 -1 1]);
 XuSSS = [XuSSS1 XuSSS2 XuSSS3 XuSSS4];
-connSSS = [2 1; 3 1; 4 1; 1 2; 3 2; 4 2; 1 3; 2 3; 4 3; 1 4; 2 4; 3 4];
+connSSS = [2 1; 3 1; 4 1; 1 2; 3 2; 4 2; 1 3; 2 3; 4 3; 1 4; 2 4; 3 4] + [0 4];
 subplot(4,3,[1,4]+5)
-visualize_network(XsSSS, XuSSS, connSSS);
+visualize_network(XsSSS, XuSSS(1:2,:), connSSS);
 axis(2*[-1 1 -1 1]);
 
-[S, Xd] = rigidity(XsSSS, XuSSS, connSSS);
+[S, Xd] = rigidity(XsSSS, XuSSS(1:2,:), connSSS);
 [V, U] = eig(S);
 xdotp = reshape(Xd*V*[sqrt(-U(2,2)/U(1,1)); 1],8,2);
 xdotn = reshape(Xd*V*[-sqrt(-U(2,2)/U(1,1)); 1],8,2);
 
 XsSSSp = XsSSS + 0.00001*xdotp(1:4,:)';
-XuSSSp = XuSSS + 0.00001*xdotp(5:8,:)';
+XuSSSp = XuSSS(1:2,:) + 0.00001*xdotp(5:8,:)';
 XsSSSn = XsSSS + 0.00001*xdotn(1:4,:)';
-XuSSSn = XuSSS + 0.00001*xdotn(5:8,:)';
+XuSSSn = XuSSS(1:2,:) + 0.00001*xdotn(5:8,:)';
 
 [XMp, fCp] = sim_motion(XsSSSp, XuSSSp, connSSS, .01, 200, xdotp,1);
 [XMp, fCp] = sim_motion(XsSSSp, XuSSSp, connSSS, .01, 200, -xdotp,1);
@@ -189,7 +189,7 @@ Xs0 = 0.5*[-1 -1 1 1;...
            -1 1 1 -1];
 XsT = Xs0/0.5;
 % Connectivity for 1 Module
-conn = [1 1; 2 1; 3 1; 4 1; 1 2; 2 2; 3 2; 4 2];
+conn = [1 1; 2 1; 3 1; 4 1; 1 2; 2 2; 3 2; 4 2] + [0 4];
 % Guess for Unspecified Node Position
 x0 = [-sqrt(2) sqrt(2);...
        0       0];
@@ -202,7 +202,7 @@ axis(1.6*[-1 1 -1 1]);
 
 % b: Finite Network and Motion
 subplot(4,5,[1 6] + 10); cla;
-[Xu, fV] = construct_network_finite(Xs0, XsT, x0, conn, 0);
+[Xu, fV] = construct_network(Xs0, XsT, x0, conn, 0, 1);
 [XMot, fC] = sim_motion(Xs0, Xu(1:2,:), conn, .01, 200, [Xs0 Xu(1:2,:)],1);
 hold on;
 plot(XsT(1,:), XsT(2,:), 'wo', 'markersize', 4, 'linewidth', 4);
@@ -226,7 +226,7 @@ axis(4*1.4*[-.5 1 -.5 1]);
 
 % Size and Save Figure
 fName = 'tesselate_finite';
-set(gcf, 'Renderer', 'opengl'); 
+set(gcf, 'Renderer', 'opengl');
 fig.PaperPositionMode = 'manual';
 fig.PaperUnits = 'inches';
 fig.PaperPosition = [0 0 8.2 2.6]*1;
@@ -243,7 +243,7 @@ XsT2 = [-1/2 0 1/2;...
         -1/2 1.5 -1/2];
 X0 = [-0.6  0.6  0.4;...
       -1.0 -1.0  1.6];
-conn = [1 1; 1 2; 1 3; 2 1; 2 2; 2 3; 3 1; 3 2; 3 3];
+conn = [1 1; 1 2; 1 3; 2 1; 2 2; 2 3; 3 1; 3 2; 3 3] + [0 3];
 
 fig = figure(5); clf;
 subplot(1,8,[1 2]);
@@ -256,15 +256,16 @@ axis(1.5*[-1 1 -1 1]);
 
 subplot(1,8,[5 6]);
 % Construct Network
-[Xu, fV] = construct_network_finite(Xs0, cat(3,XsT1,XsT2), X0, conn, 1);
+[Xu, fV] = construct_network(Xs0, cat(3,XsT1,XsT2), X0, conn, 1, 1);
 Xu = Xu(1:2,:);
-LVal = sqrt((Xs0(1,conn(:,1))-Xu(1,conn(:,2))).^2 +...
-            (Xs0(2,conn(:,1))-Xu(2,conn(:,2))).^2);
+X = [Xs0 Xu];
+LVal = sqrt((X(1,conn(:,1))-X(1,conn(:,2))).^2 +...
+            (X(2,conn(:,1))-X(2,conn(:,2))).^2)';
 [M, E] = sim_motion3D_congrad(Xs0, Xu, conn, LVal, 0.001, 1001, [1 3], XsT1(:,[1 3]), 1);
 axis(1.5*[-1 1 -1 1]);
 
 subplot(1,8,[7 8]);
-construct_network_finite(Xs0, cat(3,XsT1,XsT2), X0, conn, 1);
+construct_network(Xs0, cat(3,XsT1,XsT2), X0, conn, 1, 1);
 Xu = Xu(1:2,:);
 [M2, E2] = sim_motion3D_congrad(Xs0, Xu, conn, LVal, 0.001, 1001, [1 3], XsT2(:,[1 3]), 1);
 axis(1.5*[-1 1 -1 1]);
@@ -294,19 +295,20 @@ Us = [[-1.0  0.0 -0.6  0.0];...
 % Initial Positions
 x0 = [-.7 -.5 .8]'*.6;
 % Connectivity
-conn = [1 1; 2 1; 3 1; 4 1];
+conn = [1 1; 2 1; 3 1; 4 1] + [0 4];
 
 fig = figure(6); clf;
 subplot(1,3,1);
 visualize_conic(Xs, Us, [-1 1; -1 1; -1 1]*1.8, [100 100 100], 0, 1, 0);
-[Xu1, fV] = construct_network(Xs, Us, x0, conn, 1);
+[Xu1, fV] = construct_network(Xs, Us, x0, conn, 1, 0);
+Xu1 = Xu1(1:3,:);
 axis(1.2*[-1 1 -1 1 -1 1]);
 view(az, el);
 camlight(50,30); lighting gouraud; material([.4 1 0]);
 
 subplot(1,3,2);
 % Get Conic Parameters
-[Q, W, v0, err] = construct_conic(Xs, Us);
+[Q, W, v0, err] = construct_conic(Xs, Us, 0);
 % Change basis
 P = [W(1:d,:), v0(1:d);...
      zeros(1,d), 1]^-1;
@@ -339,7 +341,7 @@ isonormals(xx,yy,zz,Fs,ps)
             ps.FaceAlpha = 0.5;
             ps.EdgeColor = 'none';
 hold off;
-construct_network(Xs, Us, x0(:,pInd), conn(1:4,:), 1);
+construct_network(Xs, Us, x0(:,pInd), conn(1:4,:), 1, 0);
 axis(1.2*[-1 1 -1 1 -1 1]);
 view(az, el);
 camlight(50,30); lighting gouraud; material([.4 1 0]);
@@ -351,9 +353,10 @@ options = optimset('TolFun', 1e-32, 'TolX', 1e-32);
 [Xuu1, fVal] = fminsearch(F, [.5 0 -.2], options);
 [Xuu2, fVal] = fminsearch(F, [-.8 -.5 .3], options);
 Xu = [Xu1 Xuu1' Xuu2'];
-conn = [conn; 1 2; 2 2; 3 2; 4 2; 1 3; 2 3; 3 3; 4 3];
+Xu = Xu(1:3,:);
+conn = [conn; [1 2; 2 2; 3 2; 4 2; 1 3; 2 3; 3 3; 4 3] + [0 4]];
 subplot(1,3,3);
-construct_motion(Xs, Us, Xu, conn, 1, .01, [], [pInd 2; pInd 3]);
+construct_motion(Xs, Us, Xu, [conn; [pInd 2]+4; [pInd 3]+4], 1, .01);
 axis(1.2*[-1 1 -1 1 -1 1]);
 view(az, el);
 camlight(50,30); lighting gouraud; material([.4 1 0]);

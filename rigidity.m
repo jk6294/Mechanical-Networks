@@ -3,7 +3,7 @@ function [S, Xd] = rigidity(Xs, Xu, conn)
 % Inputs
 %       Xs:     d x n matrix of coordinates for specified nodes
 %       Xu:     d x m matrix of coordinates for unspecified nodes
-%       conn:   E x 2 matrix of k edges connecting two nodes
+%       conn:   E x 2 matrix of k edges connecting node i to node j
 % Outputs
 %       S:      k x k x s matrix of quadratic forms for s vectors in left
 %               nullspace of rigidity matrix
@@ -22,10 +22,13 @@ g = [];                 % Vector of constraints
 if(d==2)
 XS = sym('x', [N, 1]); assume(XS, 'real');
 YS = sym('y', [N, 1]); assume(YS, 'real');
+I = zeros(size(conn,1), N);
 for i = 1:size(conn,1)
-    g = [g; (XS(conn(i,1)) - XS(conn(i,2)+n))^2 + (YS(conn(i,1)) - YS(conn(i,2)+n))^2];
+    I(i,conn(i,1)) =  1;
+    I(i,conn(i,2)) = -1;
 end
-J = jacobian(g, [XS; YS])/2;
+J = [(XS(conn(:,1)) - XS(conn(:,2))) .* I,...
+     (YS(conn(:,1)) - YS(conn(:,2))) .* I];
 % Rigid Body Motions
 r1 = [ones([N,1]); zeros([N,1])];           % x-translation
 r2 = [zeros([N,1]); ones([N,1])];           % y-translation
@@ -39,10 +42,14 @@ elseif(d==3)
 XS = sym('x', [N, 1]); assume(XS, 'real');
 YS = sym('y', [N, 1]); assume(YS, 'real');
 ZS = sym('z', [N, 1]); assume(ZS, 'real');
+I = zeros(size(conn,1), N);
 for i = 1:size(conn,1)
-    g = [g; (XS(conn(i,1)) - XS(conn(i,2)+n))^2 + (YS(conn(i,1)) - YS(conn(i,2)+n))^2 + (ZS(conn(i,1)) - ZS(conn(i,2)+n))^2];
+    I(i,conn(i,1)) =  1;
+    I(i,conn(i,2)) = -1;
 end
-J = jacobian(g, [XS; YS; ZS])/2;
+J = [(XS(conn(:,1)) - XS(conn(:,2))) .* I,...
+     (YS(conn(:,1)) - YS(conn(:,2))) .* I,...
+     (ZS(conn(:,1)) - ZS(conn(:,2))) .* I];
 % Rigid Body Motions
 r1 = [ones([N,1]); zeros([N,1]); zeros([N,1])];           % x-translation
 r2 = [zeros([N,1]); ones([N,1]); zeros([N,1])];           % y-translation
